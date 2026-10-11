@@ -3,11 +3,20 @@ import os from 'os';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 import { createClient } from '@supabase/supabase-js';
-import bundledDbSnapshot from '../../data/db.json';
 import type { 
   User, Restaurant, Subscription, Category, MenuItem, 
   RestaurantTable, Order, OrderItem, Coupon, Customer, ActivityLog, TableServiceRequest 
-} from '../types/index';
+} from '../types/index.ts';
+
+let bundledDbSnapshot: any = null;
+try {
+  const snapshotPath = path.resolve(process.cwd(), 'data', 'db.json');
+  if (fs.existsSync(snapshotPath)) {
+    bundledDbSnapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8'));
+  }
+} catch {
+  bundledDbSnapshot = null;
+}
 
 export interface DatabaseSchema {
   users: (User & { password_hash: string })[];

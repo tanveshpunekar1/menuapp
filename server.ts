@@ -2,8 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createServer as createViteServer } from 'vite';
-import { apiRouter } from './src/server/routes';
+import { apiRouter } from './src/server/routes.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,19 +14,15 @@ async function startServer() {
   app.use(express.json({ limit: '15mb' }));
   app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
-  // Request logger in dev
-  app.use((req, res, next) => {
-    if (req.url.startsWith('/api')) {
-      console.log(`[API] ${req.method} ${req.url}`);
-    }
-    next();
-  });
-
-  // Ensure uploads directory exists
+  // Ensure uploads directory exists safely
   const uploadsDir = path.resolve(process.cwd(), 'data', 'uploads');
   import('fs').then(fs => {
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+    try {
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+    } catch {
+      // Read-only filesystem fallback
     }
   });
   app.use('/api/uploads', express.static(uploadsDir));
@@ -35,8 +30,13 @@ async function startServer() {
   // Mount API router
   app.use('/api', apiRouter);
 
+  const distPath = path.resolve(__dirname, 'dist');
+  const fs = await import('fs');
+  const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.K_SERVICE) || fs.existsSync(path.join(distPath, 'index.html')) && process.env.NODE_ENV !== 'development';
+
   // Serve Vite in development / SPA in production
-  if (process.env.NODE_ENV !== 'production') {
+  if (!isProd && process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
@@ -46,9 +46,8 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.resolve(__dirname, 'dist');
     app.use(express.static(distPath));
-    app.get(/.*/, (req, res) => {
+    app.get(/.*/, (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
