@@ -7,6 +7,8 @@ node_modules/
 dist/
 build/
 coverage/
+!api/
+!api/**
 
 # Environment Variables & Secrets (CRITICAL: Never committed or pushed to GitHub)
 .env
