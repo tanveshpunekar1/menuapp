@@ -17,6 +17,10 @@ coverage/
 .env*
 !.env.example
 
+# Vercel & Deployment local state
+.vercel
+.vercel/
+
 # Logs and runtime caches
 *.log
 npm-debug.log*

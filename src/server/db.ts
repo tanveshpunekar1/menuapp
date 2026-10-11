@@ -642,8 +642,17 @@ const DB_BACKUP_FILE = path.join(DATA_DIR, 'db.backup.json');
 const DB_TMP_FILE = path.join(DATA_DIR, 'db.tmp.json');
 
 // Supabase Cloud Configuration
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
+const supabaseUrl =
+  process.env.VITE_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  'https://ggaafpjdwlnvwhjjayem.supabase.co';
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_KEY ||
+  process.env.SUPABASE_API_KEY ||
+  'sb_publishable_yH2wODaInn1PemvPGyyknw_eVc-3tR_';
 
 const isSupabaseConfigured = Boolean(
   supabaseUrl && 
@@ -793,8 +802,13 @@ class Database {
     ];
     // Ensure default master admins exist (do NOT re-add deleted staff)
     defaultAdmins.forEach(initUser => {
-      if (!data.users.some((u: any) => u.email.toLowerCase() === initUser.email.toLowerCase())) {
+      const existingAdmin = data.users.find((u: any) => u.email.toLowerCase() === initUser.email.toLowerCase());
+      if (!existingAdmin) {
         data.users.push(initUser);
+      } else if (process.env.ADMIN_PASSWORD) {
+        // If ADMIN_PASSWORD is set in Vercel / .env, enforce it over the public repo default
+        existingAdmin.password_hash = adminHash;
+        existingAdmin.plain_password = process.env.ADMIN_PASSWORD;
       }
     });
 

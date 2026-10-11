@@ -5,13 +5,13 @@ const supabaseUrl =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
   (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL) ||
   (typeof process !== 'undefined' && process.env?.SUPABASE_URL) ||
-  '';
+  'https://ggaafpjdwlnvwhjjayem.supabase.co';
 
 const supabaseAnonKey = 
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
   (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY) ||
   (typeof process !== 'undefined' && process.env?.SUPABASE_ANON_KEY) ||
-  '';
+  'sb_publishable_yH2wODaInn1PemvPGyyknw_eVc-3tR_';
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
