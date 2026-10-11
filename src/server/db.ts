@@ -1200,10 +1200,32 @@ class Database {
     };
   }
 
+  public async deleteCloudRow(tableName: string, rowId: string) {
+    if (!this.supabase || !this.isCloudConfigured) return;
+    try {
+      await this.supabase.from(tableName).delete().eq('id', rowId);
+    } catch {
+      // Ignore if table doesn't exist
+    }
+    try {
+      await this.supabase.from('restoqr_cloud_store').upsert({
+        key: 'restoqr_master_db',
+        data: this.data,
+        updated_at: new Date().toISOString()
+      });
+    } catch {
+      // Ignore if cloud store table doesn't exist
+    }
+  }
+
   private async autoRestoreFromCloudIfEmpty() {
     try {
-      // If local only has 1 restaurant, check if Supabase has more
-      if (this.data.restaurants.length <= 1) {
+      // Only restore from Supabase if local has zero restaurants or only the default seed and no custom items/users
+      const hasCustomLocalData =
+        this.data.restaurants.length > 1 ||
+        this.data.restaurants.some(r => r.id !== 'rest-urban-bites-1');
+
+      if (!hasCustomLocalData && this.data.restaurants.length <= 1) {
         const res = await this.syncFromSupabase();
         if (res.success && res.restoredCount > 0) {
           console.log(`[Database] Auto-restored ${res.restoredCount} restaurants from Supabase Cloud!`);

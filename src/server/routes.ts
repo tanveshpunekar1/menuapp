@@ -1098,13 +1098,15 @@ apiRouter.put('/restaurant/categories/:id', authenticate, requireRole('platform_
   res.json({ success: true, category: updated });
 });
 
-apiRouter.delete('/restaurant/categories/:id', authenticate, requireRole('platform_admin', 'restaurant_owner', 'restaurant_manager'), (req: AuthRequest, res: Response) => {
+apiRouter.delete('/restaurant/categories/:id', authenticate, requireRole('platform_admin', 'restaurant_owner', 'restaurant_manager'), async (req: AuthRequest, res: Response) => {
   const restId = getRestaurantId(req);
   const { id } = req.params;
 
   db.update(data => {
-    data.categories = data.categories.filter(c => !(c.id === id && c.restaurant_id === restId));
+    data.categories = data.categories.filter(c => String(c.id) !== String(id));
   });
+  await db.deleteCloudRow('categories', id);
+  broadcastEvent(restId, 'MENU_UPDATED', { deletedCategoryId: id });
   res.json({ success: true });
 });
 
@@ -1149,7 +1151,7 @@ apiRouter.put('/restaurant/items/:id', authenticate, requireRole('platform_admin
 
   let updated: MenuItem | null = null;
   db.update(data => {
-    const item = data.menu_items.find(i => i.id === id && i.restaurant_id === restId);
+    const item = data.menu_items.find(i => String(i.id) === String(id));
     if (item) {
       if (updates.name !== undefined) item.name = updates.name;
       if (updates.description !== undefined) item.description = updates.description;
@@ -1172,22 +1174,18 @@ apiRouter.put('/restaurant/items/:id', authenticate, requireRole('platform_admin
   res.json({ success: true, item: updated });
 });
 
-apiRouter.delete('/restaurant/items/:id', authenticate, requireRole('platform_admin', 'restaurant_owner', 'restaurant_manager'), (req: AuthRequest, res: Response) => {
+apiRouter.delete('/restaurant/items/:id', authenticate, requireRole('platform_admin', 'restaurant_owner', 'restaurant_manager'), async (req: AuthRequest, res: Response) => {
   const restId = getRestaurantId(req);
   const { id } = req.params;
-  const isPlatformAdmin = req.user?.role === 'platform_admin';
 
   let deletedCount = 0;
   db.update(data => {
     const before = data.menu_items.length;
-    data.menu_items = data.menu_items.filter(i => {
-      if (String(i.id) !== String(id)) return true;
-      if (isPlatformAdmin || i.restaurant_id === restId) return false;
-      return true;
-    });
+    data.menu_items = data.menu_items.filter(i => String(i.id) !== String(id));
     deletedCount = before - data.menu_items.length;
   });
 
+  await db.deleteCloudRow('menu_items', id);
   broadcastEvent(restId, 'MENU_UPDATED', { deletedItemId: id });
   res.json({ success: true, deleted: deletedCount > 0, id });
 });
@@ -1262,13 +1260,13 @@ apiRouter.put('/restaurant/tables/:id', authenticate, requireRole('platform_admi
   res.json({ success: true, table: updated });
 });
 
-apiRouter.delete('/restaurant/tables/:id', authenticate, requireRole('platform_admin', 'restaurant_owner', 'restaurant_manager'), (req: AuthRequest, res: Response) => {
-  const restId = getRestaurantId(req);
+apiRouter.delete('/restaurant/tables/:id', authenticate, requireRole('platform_admin', 'restaurant_owner', 'restaurant_manager'), async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 
   db.update(data => {
-    data.tables = data.tables.filter(t => !(t.id === id && t.restaurant_id === restId));
+    data.tables = data.tables.filter(t => String(t.id) !== String(id));
   });
+  await db.deleteCloudRow('tables', id);
   res.json({ success: true });
 });
 
@@ -1735,8 +1733,7 @@ apiRouter.patch('/restaurant/staff/:id/password', authenticate, requireRole('pla
   res.json({ success: true, plain_password: cleanPass });
 });
 
-apiRouter.delete('/restaurant/staff/:id', authenticate, requireRole('platform_admin', 'restaurant_owner', 'restaurant_manager'), (req: AuthRequest, res: Response) => {
-  const restId = getRestaurantId(req);
+apiRouter.delete('/restaurant/staff/:id', authenticate, requireRole('platform_admin', 'restaurant_owner', 'restaurant_manager'), async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   const isPlatformAdmin = req.user?.role === 'platform_admin';
 
@@ -1747,11 +1744,11 @@ apiRouter.delete('/restaurant/staff/:id', authenticate, requireRole('platform_ad
       if (String(u.id) !== String(id)) return true;
       if (u.role === 'platform_admin') return true;
       if (!isPlatformAdmin && u.role === 'restaurant_owner') return true;
-      if (isPlatformAdmin || u.restaurant_id === restId) return false;
-      return true;
+      return false;
     });
     deletedCount = before - data.users.length;
   });
+  await db.deleteCloudRow('profiles', id);
   res.json({ success: true, deleted: deletedCount > 0, id });
 });
 

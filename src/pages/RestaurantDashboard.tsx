@@ -587,9 +587,8 @@ export const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({
   const handleDeleteItem = async (itemId: string) => {
     try {
       setItems(prev => prev.filter(i => String(i.id) !== String(itemId)));
-      await api.deleteMenuItem(itemId);
-      showToast('Menu item deleted successfully', 'success');
-      loadDashboardData();
+      await api.deleteMenuItem(itemId, profile?.id);
+      showToast('Menu item deleted permanently', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to delete item', 'error');
       loadDashboardData();
