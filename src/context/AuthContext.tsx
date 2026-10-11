@@ -17,8 +17,22 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('restoqr_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(() => {
+    try {
+      const saved = localStorage.getItem('restoqr_restaurant');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,11 +47,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const data = await api.getMe();
         setUser(data.user);
         setRestaurant(data.restaurant);
+        localStorage.setItem('restoqr_user', JSON.stringify(data.user));
+        if (data.restaurant) {
+          localStorage.setItem('restoqr_restaurant', JSON.stringify(data.restaurant));
+        }
       } catch (err) {
         console.warn('Session verification failed:', err);
-        localStorage.removeItem('restoqr_token');
-        setUser(null);
-        setRestaurant(null);
+        const cachedUser = localStorage.getItem('restoqr_user');
+        if (!cachedUser) {
+          localStorage.removeItem('restoqr_token');
+          setUser(null);
+          setRestaurant(null);
+        }
       } finally {
         setLoading(false);
       }
@@ -49,6 +70,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     const res = await api.login(email, password);
     localStorage.setItem('restoqr_token', res.token);
+    localStorage.setItem('restoqr_user', JSON.stringify(res.user));
+    if (res.restaurant) {
+      localStorage.setItem('restoqr_restaurant', JSON.stringify(res.restaurant));
+    } else {
+      localStorage.removeItem('restoqr_restaurant');
+    }
     setUser(res.user);
     setRestaurant(res.restaurant);
     return res.redirectUrl;
@@ -56,6 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('restoqr_token');
+    localStorage.removeItem('restoqr_user');
+    localStorage.removeItem('restoqr_restaurant');
     setUser(null);
     setRestaurant(null);
     window.location.href = '/login';
@@ -66,6 +95,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await api.getMe();
       setUser(data.user);
       setRestaurant(data.restaurant);
+      localStorage.setItem('restoqr_user', JSON.stringify(data.user));
+      if (data.restaurant) {
+        localStorage.setItem('restoqr_restaurant', JSON.stringify(data.restaurant));
+      }
     } catch (err) {
       console.error('Failed to refresh user:', err);
     }

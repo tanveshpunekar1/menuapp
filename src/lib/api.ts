@@ -10,13 +10,13 @@ function getAuthHeader(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function handleResponse<T>(res: Response): Promise<T> {
+async function handleResponse<T>(res: Response, endpoint: string = ''): Promise<T> {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    if (res.status === 401 && !window.location.pathname.startsWith('/menu')) {
+    // Only force logout when /auth/me itself returns 401 and no cached session exists
+    if (res.status === 401 && endpoint === '/auth/me' && !window.location.pathname.startsWith('/menu')) {
       localStorage.removeItem('restoqr_token');
       localStorage.removeItem('restoqr_user');
-      window.location.href = '/login';
     }
     throw new Error(data.error || `Request failed with status ${res.status}`);
   }
@@ -37,14 +37,14 @@ export const api = {
       user: User;
       restaurant: Restaurant | null;
       redirectUrl: string;
-    }>(res);
+    }>(res, '/auth/login');
   },
 
   async getMe() {
     const res = await fetch(`${API_BASE}/auth/me`, {
       headers: { ...getAuthHeader() }
     });
-    return handleResponse<{ user: User; restaurant: Restaurant | null }>(res);
+    return handleResponse<{ user: User; restaurant: Restaurant | null }>(res, '/auth/me');
   },
 
   async changePassword(payload: { current_password: string; new_password: string }) {

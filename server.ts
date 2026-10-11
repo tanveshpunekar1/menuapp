@@ -31,11 +31,12 @@ async function startServer() {
   app.use('/api', apiRouter);
 
   const distPath = path.resolve(__dirname, 'dist');
+  const distIndexHtml = path.join(distPath, 'index.html');
   const fs = await import('fs');
-  const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.K_SERVICE) || fs.existsSync(path.join(distPath, 'index.html')) && process.env.NODE_ENV !== 'development';
+  const useStaticDist = process.env.NODE_ENV === 'production' && fs.existsSync(distIndexHtml);
 
-  // Serve Vite in development / SPA in production
-  if (!isProd && process.env.NODE_ENV !== 'production') {
+  // Serve Vite in development (or if dist/index.html doesn't exist yet) / SPA in production
+  if (!useStaticDist) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { 
@@ -48,7 +49,7 @@ async function startServer() {
   } else {
     app.use(express.static(distPath));
     app.get(/.*/, (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      res.sendFile(distIndexHtml);
     });
   }
 
