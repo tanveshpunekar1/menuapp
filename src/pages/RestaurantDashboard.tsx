@@ -18,8 +18,9 @@ import {
   Printer, DollarSign, Clock, AlertCircle, RefreshCw, Flame, CheckCircle2,
   Upload, QrCode, History, Phone, Receipt, Archive, Filter, Calendar, Sparkles, CheckSquare,
   Lock, Eye, EyeOff, KeyRound, BellRing, Smartphone, CheckCheck, X, ArrowRight,
-  Menu, Coffee, ShoppingCart
+  Menu, Coffee, ShoppingCart, Palette
 } from 'lucide-react';
+import { ThemeStudioPanel } from '../components/ThemeStudioPanel';
 
 interface RestaurantDashboardProps {
   onNavigate: (path: string) => void;
@@ -1061,6 +1062,21 @@ export const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({
                   </button>
 
                   <button
+                    onClick={() => { setActiveTab('themes'); setMobileMenuOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${
+                      activeTab === 'themes' ? 'bg-[#ff4d2e] text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-orange-50/60'
+                    }`}
+                  >
+                    <Palette className="w-4 h-4 text-[#ff4d2e]" />
+                    <span>Menu Themes</span>
+                    <span className={`ml-auto text-[9px] px-2 py-0.5 rounded-full font-black uppercase ${
+                      activeTab === 'themes' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700'
+                    }`}>
+                      5 Themes
+                    </span>
+                  </button>
+
+                  <button
                     onClick={() => { setActiveTab('coupons'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs transition-all ${
                       activeTab === 'coupons' ? 'bg-[#ff4d2e] text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -1317,6 +1333,23 @@ export const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({
                 <span>Menu Items</span>
                 <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
                   {items.length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('themes')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                  activeTab === 'themes'
+                    ? 'bg-[#ff4d2e] text-white shadow-md shadow-[#ff4d2e]/25'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-orange-50/70'
+                }`}
+              >
+                <Palette className={`w-4 h-4 ${activeTab === 'themes' ? 'text-white' : 'text-[#ff4d2e]'}`} />
+                <span>Menu Themes</span>
+                <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-black uppercase ${
+                  activeTab === 'themes' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700'
+                }`}>
+                  5 Themes
                 </span>
               </button>
 
@@ -3893,6 +3926,20 @@ export const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({
               </form>
             </div>
           </div>
+        )}
+
+        {/* TAB: MENU THEMES & CUSTOMIZATION STUDIO */}
+        {activeTab === 'themes' && profile && (
+          <ThemeStudioPanel
+            restaurant={profile}
+            categories={categories}
+            items={items}
+            onUpdated={(updatedRest) => {
+              setProfile(updatedRest);
+              setRestaurant(updatedRest);
+            }}
+            onNavigate={onNavigate}
+          />
         )}
       </div>
     </main>

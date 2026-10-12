@@ -1,899 +1,765 @@
-import { 
-  User, Restaurant, MenuItem, Category, RestaurantTable, 
-  Order, Coupon, Customer, Subscription, ActivityLog, TableServiceRequest 
-} from '../types';
-
 const API_BASE = '/api';
 
-function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem('restoqr_token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+export interface ApiErrorEntry {
+  id: string;
+  timestamp: string;
+  endpoint: string;
+  method: string;
+  code: string | number;
+  message: string;
 }
 
-async function handleResponse<T>(res: Response, endpoint: string = ''): Promise<T> {
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    // Only force logout when /auth/me itself returns 401 and no cached session exists
-    if (res.status === 401 && endpoint === '/auth/me' && !window.location.pathname.startsWith('/menu')) {
-      localStorage.removeItem('restoqr_token');
-      localStorage.removeItem('restoqr_user');
-    }
-    throw new Error(data.error || `Request failed with status ${res.status}`);
+const ERROR_LOG_KEY = 'restoqr_debug_errors_v1';
+const CLIENT_JOURNAL_KEY = 'restoqr_client_journal_v1';
+const TOMBSTONES_KEY = 'restoqr_tombstones_v1';
+
+interface ClientJournal {
+  users: any[];
+  restaurants: any[];
+  subscriptions: any[];
+  categories: any[];
+  menu_items: any[];
+  tables: any[];
+  coupons: any[];
+  orders: any[];
+  order_items: any[];
+  tombstones: string[];
+}
+
+function getEmptyJournal(): ClientJournal {
+  return {
+    users: [],
+    restaurants: [],
+    subscriptions: [],
+    categories: [],
+    menu_items: [],
+    tables: [],
+    coupons: [],
+    orders: [],
+    order_items: [],
+    tombstones: [],
+  };
+}
+
+export function getTombstones(): string[] {
+  try {
+    const raw = localStorage.getItem(TOMBSTONES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
   }
-  return data;
+}
+
+export function addTombstone(id: string | string[]) {
+  try {
+    const ids = (Array.isArray(id) ? id : [id]).map(s => String(s).trim()).filter(Boolean);
+    if (ids.length === 0) return;
+    const current = new Set(getTombstones());
+    ids.forEach(i => current.add(i));
+    const next = Array.from(current).slice(-500);
+    localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(next));
+
+    // Also purge from client journal
+    const journal = getClientJournal();
+    const idSet = new Set(ids);
+    journal.restaurants = (journal.restaurants || []).filter((r: any) => !idSet.has(String(r.id)));
+    journal.users = (journal.users || []).filter((u: any) => !idSet.has(String(u.id)) && !idSet.has(String(u.restaurant_id)));
+    journal.subscriptions = (journal.subscriptions || []).filter((s: any) => !idSet.has(String(s.id)) && !idSet.has(String(s.restaurant_id)));
+    journal.categories = (journal.categories || []).filter((c: any) => !idSet.has(String(c.id)) && !idSet.has(String(c.restaurant_id)));
+    journal.menu_items = (journal.menu_items || []).filter((m: any) => !idSet.has(String(m.id)) && !idSet.has(String(m.category_id)) && !idSet.has(String(m.restaurant_id)));
+    journal.tables = (journal.tables || []).filter((t: any) => !idSet.has(String(t.id)) && !idSet.has(String(t.restaurant_id)));
+    journal.coupons = (journal.coupons || []).filter((c: any) => !idSet.has(String(c.id)) && !idSet.has(String(c.restaurant_id)));
+    journal.orders = (journal.orders || []).filter((o: any) => !idSet.has(String(o.id)) && !idSet.has(String(o.restaurant_id)));
+    journal.tombstones = next;
+    saveClientJournal(journal);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function getClientJournal(): ClientJournal {
+  try {
+    const raw = localStorage.getItem(CLIENT_JOURNAL_KEY);
+    if (!raw) return { ...getEmptyJournal(), tombstones: getTombstones() };
+    const parsed = JSON.parse(raw);
+    return {
+      ...getEmptyJournal(),
+      ...parsed,
+      tombstones: Array.from(new Set([...(parsed.tombstones || []), ...getTombstones()])),
+    };
+  } catch {
+    return getEmptyJournal();
+  }
+}
+
+export function saveClientJournal(journal: ClientJournal) {
+  try {
+    localStorage.setItem(CLIENT_JOURNAL_KEY, JSON.stringify(journal));
+  } catch {
+    // ignore quota errors
+  }
+}
+
+export function upsertJournalRecord(collection: keyof Omit<ClientJournal, 'tombstones'>, record: any) {
+  if (!record || !record.id) return;
+  try {
+    const journal = getClientJournal();
+    const list = Array.isArray(journal[collection]) ? [...journal[collection]] : [];
+    const idx = list.findIndex((item: any) => item.id === record.id);
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...record };
+    } else {
+      list.push(record);
+    }
+    journal[collection] = list.slice(-200);
+    saveClientJournal(journal);
+  } catch {
+    // ignore
+  }
+}
+
+export function logApiError(endpoint: string, method: string, code: string | number, message: string) {
+  try {
+    const entry: ApiErrorEntry = {
+      id: `err-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      timestamp: new Date().toISOString(),
+      endpoint,
+      method,
+      code,
+      message,
+    };
+    const existing = getErrorLogs();
+    const updated = [entry, ...existing].slice(0, 20);
+    localStorage.setItem(ERROR_LOG_KEY, JSON.stringify(updated));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('restoqr:api-error', { detail: entry }));
+    }
+  } catch {
+    // ignore
+  }
+}
+
+export function getErrorLogs(): ApiErrorEntry[] {
+  try {
+    const raw = localStorage.getItem(ERROR_LOG_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function clearErrorLogs() {
+  try {
+    localStorage.removeItem(ERROR_LOG_KEY);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('restoqr:api-error-clear'));
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function filterOutTombstones<T extends { id?: string; category_id?: string; restaurant_id?: string }>(items: T[]): T[] {
+  if (!Array.isArray(items)) return items;
+  const tombstones = new Set(getTombstones());
+  if (tombstones.size === 0) return items;
+  return items.filter(item => {
+    if (!item || typeof item !== 'object') return true;
+    if (item.id && tombstones.has(String(item.id))) return false;
+    if (item.category_id && tombstones.has(String(item.category_id))) return false;
+    if (item.restaurant_id && tombstones.has(String(item.restaurant_id))) return false;
+    return true;
+  });
+}
+
+async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem('restoqr_token');
+  const tombstones = getTombstones();
+  const method = (options.method || 'GET').toUpperCase();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(tombstones.length > 0 ? { 'X-RestoQR-Tombstones': tombstones.slice(-150).join(',') } : {}),
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (networkErr: any) {
+    const msg = networkErr?.message || 'Network connection error';
+    logApiError(endpoint, method, 'NETWORK_ERROR', msg);
+    throw new Error(msg);
+  }
+
+  let data: any;
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    data = await response.json().catch(() => ({}));
+  } else {
+    const text = await response.text().catch(() => '');
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { error: text || `Request failed with status ${response.status}` };
+    }
+  }
+
+  if (!response.ok) {
+    const errorMessage = data?.error || data?.message || `Error ${response.status}: Request failed`;
+    if (!(endpoint === '/auth/me' && response.status === 401 && !token)) {
+      logApiError(endpoint, method, response.status, errorMessage);
+    }
+    const err = new Error(errorMessage) as Error & { status?: number; code?: string | number };
+    err.status = response.status;
+    err.code = data?.code || response.status;
+    throw err;
+  }
+
+  return data as T;
+}
+
+export async function syncClientJournalToServer(): Promise<void> {
+  try {
+    const journal = getClientJournal();
+    const hasData =
+      journal.restaurants.length > 0 ||
+      journal.users.length > 0 ||
+      journal.menu_items.length > 0 ||
+      journal.categories.length > 0 ||
+      journal.tombstones.length > 0;
+    if (!hasData) return;
+    await request('/sync/client-journal', {
+      method: 'POST',
+      body: JSON.stringify(journal),
+    });
+  } catch {
+    // Non-fatal background sync
+  }
 }
 
 export const api = {
   // Auth
-  async login(email: string, password: string) {
-    const res = await fetch(`${API_BASE}/auth/login`, {
+  login: async (credentials: any) => {
+    const journal = getClientJournal();
+    const email = (credentials?.email || '').trim();
+    const password = credentials?.password ? String(credentials.password).trim() : '';
+    const payload = {
+      ...credentials,
+      email,
+      password,
+      client_users: journal.users,
+      client_restaurants: journal.restaurants,
+      __journal: journal,
+    };
+    const res = await request<{ token: string; user: any; restaurant?: any }>('/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify(payload),
     });
-    return handleResponse<{
-      success: boolean;
-      token: string;
-      user: User;
-      restaurant: Restaurant | null;
-      redirectUrl: string;
-    }>(res, '/auth/login');
+    if (res?.user) {
+      upsertJournalRecord('users', {
+        ...res.user,
+        plain_password: password || undefined,
+      });
+    }
+    if (res?.restaurant) {
+      upsertJournalRecord('restaurants', res.restaurant);
+    }
+    return res;
   },
-
-  async getMe() {
-    const res = await fetch(`${API_BASE}/auth/me`, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ user: User; restaurant: Restaurant | null }>(res, '/auth/me');
-  },
-
-  async changePassword(payload: { current_password: string; new_password: string }) {
-    const res = await fetch(`${API_BASE}/auth/change-password`, {
+  getMe: () => request<{ user: any; restaurant?: any }>('/auth/me'),
+  changePassword: (data: { current_password?: string; new_password: string }) =>
+    request<{ success: boolean; message: string }>('/auth/change-password', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; message: string }>(res);
-  },
+      body: JSON.stringify(data),
+    }),
 
-  // Admin
-  async getAdminMetrics() {
-    const res = await fetch(`${API_BASE}/admin/metrics`, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{
-      totalRestaurants: number;
-      activeRestaurants: number;
-      pendingRestaurants: number;
-      suspendedRestaurants: number;
-      todayOrdersCount: number;
-      todayRevenue: number;
-      pendingPayments: number;
-      expiringSubscriptions: number;
-      dailyChart: { date: string; orders: number; revenue: number }[];
-      recentRestaurants: Restaurant[];
-      recentOrders: Order[];
-    }>(res);
-  },
+  // Supabase Cloud Sync & Backup
+  getSupabaseStatus: () => request<any>('/supabase/status'),
+  getSupabaseSchema: () => request<{ sql: string }>('/supabase/schema'),
+  syncSupabase: () => request<any>('/supabase/sync', { method: 'POST' }),
+  restoreSupabase: () => request<any>('/supabase/restore', { method: 'POST' }),
+  exportBackup: () => request<any>('/admin/backup/export'),
+  importBackup: (backupData: any) =>
+    request<any>('/admin/backup/import', {
+      method: 'POST',
+      body: JSON.stringify(backupData),
+    }),
 
-  async getAdminRestaurants() {
-    const res = await fetch(`${API_BASE}/admin/restaurants`, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<(Restaurant & { subscription: Subscription | null; owner: any; table_count?: number; staff?: any[] })[]>(res);
+  // Super Admin
+  getAdminMetrics: async () => {
+    await syncClientJournalToServer();
+    return request<any>('/admin/metrics');
   },
-
-  async getAdminUsers() {
-    const res = await fetch(`${API_BASE}/admin/users`, {
-      headers: { ...getAuthHeader() }
+  getAdminRestaurants: async () => {
+    await syncClientJournalToServer();
+    const res = await request<any[]>('/admin/restaurants');
+    const filtered = filterOutTombstones(res);
+    const journal = getClientJournal();
+    const tombstones = new Set(getTombstones());
+    const map = new Map<string, any>();
+    filtered.forEach(r => map.set(r.id, r));
+    (journal.restaurants || []).forEach(r => {
+      if (r?.id && !tombstones.has(String(r.id)) && !map.has(r.id)) {
+        map.set(r.id, r);
+      }
     });
-    return handleResponse<(User & { restaurant_name?: string; plain_password?: string })[]>(res);
+    return Array.from(map.values());
   },
-
-  async updateAdminUserPassword(id: string, payload: { new_password: string; name?: string; email?: string }) {
-    const res = await fetch(`${API_BASE}/admin/users/${id}/password`, {
+  getAdminUsers: async () => {
+    await syncClientJournalToServer();
+    const res = await request<any[]>('/admin/users');
+    const filtered = filterOutTombstones(res);
+    const journal = getClientJournal();
+    const tombstones = new Set(getTombstones());
+    const map = new Map<string, any>();
+    filtered.forEach(u => map.set(u.id, u));
+    (journal.users || []).forEach(u => {
+      if (u?.id && !tombstones.has(String(u.id)) && !tombstones.has(String(u.restaurant_id)) && !map.has(u.id)) {
+        map.set(u.id, u);
+      }
+    });
+    return Array.from(map.values());
+  },
+  updateAdminUserPassword: (id: string, data: { new_password: string }) =>
+    request<any>(`/admin/users/${id}/password`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; user: User & { plain_password?: string } }>(res);
-  },
-
-  async createAdminUser(payload: { name: string; email: string; password: string; role: string; restaurant_id?: string }) {
-    const res = await fetch(`${API_BASE}/admin/users`, {
+      body: JSON.stringify(data),
+    }),
+  createAdminUser: async (data: { name: string; email: string; password: string; role: string; restaurant_id?: string }) => {
+    const res = await request<any>('/admin/users', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
     });
-    return handleResponse<{ success: boolean; user: User & { plain_password?: string } }>(res);
+    if (res?.id) {
+      upsertJournalRecord('users', {
+        ...res,
+        plain_password: data.password ? String(data.password).trim() : undefined,
+      });
+    }
+    return res;
   },
-
-  async deleteAdminUser(id: string) {
-    const res = await fetch(`${API_BASE}/admin/users/${id}`, {
+  deleteAdminUser: async (id: string) => {
+    addTombstone(id);
+    return request<any>(`/admin/users/${id}`, {
       method: 'DELETE',
-      headers: { ...getAuthHeader() }
     });
-    return handleResponse<{ success: boolean }>(res);
   },
-
-  async updateRestaurantControl(id: string, payload: {
-    online_payment_enabled?: boolean;
-    pay_counter_only?: boolean;
-    table_count?: number;
-    water_bottle_price?: number;
-    accepting_orders?: boolean;
-    owner_password?: string;
-    owner_name?: string;
-    owner_email?: string;
-    upi_id?: string;
-    upi_payee_name?: string;
-    tax_rate?: number;
-  }) {
-    const res = await fetch(`${API_BASE}/admin/restaurants/${id}/control`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; restaurant: Restaurant; table_count: number }>(res);
-  },
-
-  async createRestaurant(payload: any) {
-    const res = await fetch(`${API_BASE}/admin/restaurants`, {
+  createRestaurant: async (data: any) => {
+    const res = await request<any>('/admin/restaurants', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
     });
-    return handleResponse<{ success: boolean; restaurant: Restaurant; owner: any }>(res);
+    if (res?.id) {
+      upsertJournalRecord('restaurants', res);
+    }
+    if (res?.owner?.id) {
+      upsertJournalRecord('users', res.owner);
+    }
+    if (res?.subscription?.id) {
+      upsertJournalRecord('subscriptions', res.subscription);
+    }
+    if (Array.isArray(res?.tables)) {
+      res.tables.forEach((t: any) => upsertJournalRecord('tables', t));
+    }
+    return res;
   },
-
-  async updateRestaurantStatus(id: string, payload: { status?: string; service_expires_at?: string; duration_days?: number; ban_reason?: string } | string) {
+  updateRestaurantStatus: async (id: string, payload: string | Record<string, any>) => {
     const body = typeof payload === 'string' ? { status: payload } : payload;
-    const res = await fetch(`${API_BASE}/admin/restaurants/${id}/status`, {
+    const res = await request<any>(`/admin/restaurants/${id}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ ...body, __journal: getClientJournal() }),
     });
-    return handleResponse<{ success: boolean; restaurant: Restaurant }>(res);
+    if (res?.id) upsertJournalRecord('restaurants', res);
+    return res;
   },
-
-  async deleteRestaurant(id: string) {
-    const res = await fetch(`${API_BASE}/admin/restaurants/${id}`, {
+  updateRestaurantControl: async (id: string, payload: Record<string, any>) => {
+    const res = await request<any>(`/admin/restaurants/${id}/control`, {
+      method: 'PATCH',
+      body: JSON.stringify({ ...payload, __journal: getClientJournal() }),
+    });
+    if (res?.restaurant?.id) upsertJournalRecord('restaurants', res.restaurant);
+    else if (res?.id) upsertJournalRecord('restaurants', res);
+    return res;
+  },
+  deleteRestaurant: async (id: string) => {
+    addTombstone(id);
+    const res = await request<any>(`/admin/restaurants/${id}`, {
       method: 'DELETE',
-      headers: { ...getAuthHeader() }
     });
-    return handleResponse<{ success: boolean; message: string }>(res);
+    if (Array.isArray(res?.tombstones)) {
+      addTombstone(res.tombstones);
+    }
+    return res;
   },
-
-  async getAdminSubscriptions() {
-    const res = await fetch(`${API_BASE}/admin/subscriptions`, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<(Subscription & { restaurant_name: string })[]>(res);
+  getAdminSubscriptions: async () => {
+    const res = await request<any[]>('/admin/subscriptions');
+    return filterOutTombstones(res);
   },
-
-  async updateSubscription(id: string, payload: any) {
-    const res = await fetch(`${API_BASE}/admin/subscriptions/${id}`, {
+  updateSubscription: (id: string, payload: Record<string, any>) =>
+    request<any>(`/admin/subscriptions/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; subscription: Subscription }>(res);
-  },
+      body: JSON.stringify(payload),
+    }),
+  getAdminLogs: () => request<any[]>('/admin/activity-logs'),
 
-  async getAdminLogs() {
-    const res = await fetch(`${API_BASE}/admin/activity-logs`, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<ActivityLog[]>(res);
+  // Restaurant Owner & Staff (with optional restaurantId override for Super Admin control)
+  getRestaurantProfile: async (restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/profile${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`);
+    if (res?.id) upsertJournalRecord('restaurants', res);
+    return res;
   },
-
-  // Restaurant Management
-  async getRestaurantProfile(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/profile?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/profile`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<Restaurant>(res);
-  },
-
-  async updateRestaurantProfile(payload: Partial<Restaurant>, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/profile?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/profile`;
-    const res = await fetch(url, {
+  updateRestaurantProfile: async (data: any, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/profile${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
     });
-    return handleResponse<{ success: boolean; restaurant: Restaurant }>(res);
+    if (res?.id) upsertJournalRecord('restaurants', res);
+    return res;
   },
+  getMenu: async (restaurantId?: string) => {
+    const res = await request<{ categories: any[]; items: any[] }>(
+      `/restaurant/menu${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`
+    );
+    const tombstones = new Set(getTombstones());
+    const journal = getClientJournal();
+    const userStr = localStorage.getItem('restoqr_user');
+    const currentRestId = restaurantId || (userStr ? (() => { try { return JSON.parse(userStr)?.restaurant_id; } catch { return undefined; } })() : undefined);
 
-  async getMenu(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/menu?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/menu`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ categories: Category[]; items: MenuItem[] }>(res);
-  },
-
-  async createCategory(payload: { name: string; sort_order?: number }, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/categories?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/categories`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; category: Category }>(res);
-  },
-
-  async updateCategory(id: string, payload: Partial<Category>, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/categories/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/categories/${id}`;
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; category: Category }>(res);
-  },
-
-  async deleteCategory(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/categories/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/categories/${id}`;
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean }>(res);
-  },
-
-  async createMenuItem(payload: any, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/items?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/items`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; item: MenuItem }>(res);
-  },
-
-  async updateMenuItem(id: string, payload: any, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/items/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/items/${id}`;
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; item: MenuItem }>(res);
-  },
-
-  async duplicateMenuItem(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/items/${id}/duplicate?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/items/${id}/duplicate`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean; item: MenuItem }>(res);
-  },
-
-  async deleteMenuItem(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/items/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/items/${id}`;
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean }>(res);
-  },
-
-  async getTables(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/tables?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/tables`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<RestaurantTable[]>(res);
-  },
-
-  async createTable(payload: { table_number: number; capacity?: number; status?: string }, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/tables?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/tables`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; table: RestaurantTable }>(res);
-  },
-
-  async updateTable(id: string, payload: Partial<RestaurantTable>, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/tables/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/tables/${id}`;
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; table: RestaurantTable }>(res);
-  },
-
-  async deleteTable(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/tables/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/tables/${id}`;
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean }>(res);
-  },
-
-  async getCoupons(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/coupons?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/coupons`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<Coupon[]>(res);
-  },
-
-  async createCoupon(payload: any, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/coupons?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/coupons`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; coupon: Coupon }>(res);
-  },
-
-  async updateCoupon(id: string, payload: any, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/coupons/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/coupons/${id}`;
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; coupon: Coupon }>(res);
-  },
-
-  async deleteCoupon(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/coupons/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/coupons/${id}`;
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean }>(res);
-  },
-
-  async getOrders(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<Order[]>(res);
-  },
-
-  async updateOrderStatus(id: string, status: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/${id}/status?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/${id}/status`;
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify({ status })
-    });
-    return handleResponse<{ success: boolean; order: Order }>(res);
-  },
-
-  async markOrderPaid(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/${id}/payment?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/${id}/payment`;
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify({ payment_status: 'paid' })
-    });
-    return handleResponse<{ success: boolean; order: Order }>(res);
-  },
-
-  async updateOrderPayment(id: string, payment_status: string, payment_method?: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/${id}/payment?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/${id}/payment`;
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify({ payment_status, payment_method })
-    });
-    return handleResponse<{ success: boolean; order: Order }>(res);
-  },
-
-  async updatePaymentStatus(id: string, payment_status: string, payment_method?: string, adminRestId?: string) {
-    return this.updateOrderPayment(id, payment_status, payment_method, adminRestId);
-  },
-
-  async editOrderItems(id: string, items: any[], notes?: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/${id}/items?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/${id}/items`;
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify({ items, notes })
-    });
-    return handleResponse<{ success: boolean; order: Order }>(res);
-  },
-
-  async completeOrderWithCash(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/${id}/complete-cash?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/${id}/complete-cash`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean; message: string; order: Order }>(res);
-  },
-
-  async deleteOrder(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/${id}`;
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean; message: string }>(res);
-  },
-
-  async dailyClearOrders(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/daily-clear?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/daily-clear`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean; cleared_count: number; message: string }>(res);
-  },
-
-  async getOrderHistory(params?: {
-    phone?: string;
-    search?: string;
-    status?: string;
-    payment_method?: string;
-    date?: string;
-    limit?: number;
-  }, adminRestId?: string) {
-    const query = new URLSearchParams();
-    if (adminRestId) query.set('adminRestaurantId', adminRestId);
-    if (params?.phone) query.set('phone', params.phone);
-    if (params?.search) query.set('search', params.search);
-    if (params?.status) query.set('status', params.status);
-    if (params?.payment_method) query.set('payment_method', params.payment_method);
-    if (params?.date) query.set('date', params.date);
-    if (params?.limit) query.set('limit', params.limit.toString());
-
-    const url = `${API_BASE}/restaurant/orders/history?${query.toString()}`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean; total_count: number; orders: Order[] }>(res);
-  },
-
-  async getCustomers(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/customers?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/customers`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<Customer[]>(res);
-  },
-
-  async getAnalytics(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/analytics?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/analytics`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<any>(res);
-  },
-
-  async getStaff(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/staff?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/staff`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<any[]>(res);
-  },
-
-  async addStaff(payload: any, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/staff?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/staff`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<any>(res);
-  },
-
-  async deleteStaff(id: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/staff/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/staff/${id}`;
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<any>(res);
-  },
-
-  // Table Service Requests / Waiter Alerts
-  async getServiceRequests(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/service-requests?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/service-requests`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<TableServiceRequest[]>(res);
-  },
-
-  async updateServiceRequest(id: string, status: 'attended' | 'resolved' | 'pending', adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/service-requests/${id}?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/service-requests/${id}`;
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify({ status })
-    });
-    return handleResponse<{ success: boolean; request: TableServiceRequest }>(res);
-  },
-
-  async clearResolvedServiceRequests(adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/service-requests/clear-resolved?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/service-requests/clear-resolved`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean; cleared: number }>(res);
-  },
-
-  // Waiter POS / Punch Order for Table
-  async waiterPunchOrder(payload: { 
-    table_number: number; 
-    items: any[]; 
-    notes?: string; 
-    payment_method?: string; 
-    customer_name?: string; 
-    customer_phone?: string; 
-    special_instructions?: string;
-    order_type?: string;
-  }, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/punch?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/punch`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; order: Order }>(res);
-  },
-
-  // Waiter Table Bill Settle
-  async settleTableBill(tableNum: number, paymentMethod?: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/tables/${tableNum}/settle-bill?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/tables/${tableNum}/settle-bill`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify({ payment_method: paymentMethod })
-    });
-    return handleResponse<{ success: boolean; count: number; orders: Order[] }>(res);
-  },
-
-  // Public Customer Menu & Order Endpoints
-  async getPublicMenu(slug: string) {
-    const res = await fetch(`${API_BASE}/public/menu/${slug}`);
-    return handleResponse<{
-      restaurant: Restaurant;
-      categories: Category[];
-      items: MenuItem[];
-      available_tables: { table_number: number }[];
-    }>(res);
-  },
-
-  async getPublicTableMenu(slug: string, tableNum: number | string) {
-    const res = await fetch(`${API_BASE}/public/menu/${slug}/table/${tableNum}`);
-    return handleResponse<{
-      restaurant: Restaurant;
-      table: RestaurantTable;
-      categories: Category[];
-      items: MenuItem[];
-    }>(res);
-  },
-
-  async getPublicTableOrders(slug: string, tableNum: number | string) {
-    const res = await fetch(`${API_BASE}/public/table/${slug}/${tableNum}/orders`);
-    return handleResponse<{
-      table_number: number;
-      table_id: string;
-      running_total: number;
-      total_items: number;
-      orders: Order[];
-    }>(res);
-  },
-
-  async getRecentOrders(payload: { restaurant_id: string; order_ids?: string[]; table_number?: number }) {
-    const res = await fetch(`${API_BASE}/public/orders/recent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{
-      success: boolean;
-      orders: Order[];
-      running_total: number;
-      active_count: number;
-    }>(res);
-  },
-
-  async customerPhoneLogin(payload: { phone: string; name?: string; restaurant_id?: string }) {
-    const res = await fetch(`${API_BASE}/public/customer/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; customer: Customer; orders: Order[] }>(res);
-  },
-
-  async getCustomerPastOrders(phone: string, restaurantId?: string) {
-    const query = new URLSearchParams({ phone });
-    if (restaurantId) query.set('restaurant_id', restaurantId);
-    const res = await fetch(`${API_BASE}/public/customer/orders?${query.toString()}`);
-    return handleResponse<{ success: boolean; customer: Customer | null; orders: Order[] }>(res);
-  },
-
-  async validateCoupon(restaurantId: string, code: string, subtotal: number) {
-    const res = await fetch(`${API_BASE}/public/coupon/validate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ restaurant_id: restaurantId, code, subtotal })
-    });
-    return handleResponse<{
-      success: boolean;
-      coupon: {
-        id: string;
-        code: string;
-        discount_type: string;
-        discount_value: number;
-        calculated_discount: number;
-      };
-    }>(res);
-  },
-
-  // CRITICAL 26-STEP PLACE ORDER
-  async placeOrder(payload: {
-    restaurant_id: string;
-    table_number: number;
-    items: {
-      menu_item_id: string;
-      name?: string;
-      quantity: number;
-      selected_size?: string;
-      selected_addons?: { id: string; name: string; price: number }[];
-      spice_level?: string;
-      special_instructions?: string;
-      customization?: string;
-    }[];
-    coupon_code?: string;
-    payment_method: string;
-    customer_name?: string;
-    customer_phone?: string;
-    notes?: string;
-    special_instructions?: string;
-  }) {
-    const res = await fetch(`${API_BASE}/public/order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; message: string; order: Order }>(res);
-  },
-
-  async verifyOnlinePayment(orderId: string, status: 'paid' | 'failed' = 'paid', extra?: { utr?: string; app?: string }) {
-    const res = await fetch(`${API_BASE}/public/order/${orderId}/verify-payment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, utr: extra?.utr, app: extra?.app, payment_id: extra?.utr })
-    });
-    return handleResponse<{ success: boolean; order: Order }>(res);
-  },
-
-  async verifyPayment(orderId: string, status: 'paid' | 'failed' = 'paid', extra?: { utr?: string; app?: string }) {
-    return this.verifyOnlinePayment(orderId, status, extra);
-  },
-
-  async callWaiter(payload: { restaurant_id: string; table_number: number; request_type?: string; note?: string; quantity?: number }) {
-    const res = await fetch(`${API_BASE}/public/table/service-request`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; message: string; order?: Order; water_added?: boolean; water_price?: number }>(res);
-  },
-
-  async verifyOrderCode(orderId: string, code: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/orders/${orderId}/verify-code?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/orders/${orderId}/verify-code`;
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify({ code })
-    });
-    return handleResponse<{ success: boolean; order: Order }>(res);
-  },
-
-  async getTableRunningBill(tableId: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/tables/${tableId}/running-bill?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/tables/${tableId}/running-bill`;
-    const res = await fetch(url, {
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{
-      table_number: number;
-      table_id: string;
-      status: string;
-      active_orders: Order[];
-      running_total: number;
-      total_items: number;
-    }>(res);
-  },
-
-  async settleTable(tableId: string, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/tables/${tableId}/settle?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/tables/${tableId}/settle`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { ...getAuthHeader() }
-    });
-    return handleResponse<{ success: boolean; message: string }>(res);
-  },
-
-  async updateRestaurantOperations(payload: {
-    accepting_orders?: boolean;
-    order_validation_enabled?: boolean;
-    service_charge_rate?: number;
-    pay_counter_only?: boolean;
-    online_payment_enabled?: boolean;
-    water_bottle_price?: number;
-  }, adminRestId?: string) {
-    const url = adminRestId 
-      ? `${API_BASE}/restaurant/settings/operations?adminRestaurantId=${adminRestId}` 
-      : `${API_BASE}/restaurant/settings/operations`;
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; restaurant: Restaurant }>(res);
-  },
-
-  async uploadImage(dataUrl: string, filename?: string) {
-    const res = await fetch(`${API_BASE}/upload`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dataUrl, filename })
-    });
-    return handleResponse<{ success: boolean; url: string }>(res);
-  },
-
-  async getTableServiceRequest(restaurantId: string, tableNumber: number) {
-    const res = await fetch(`${API_BASE}/public/table/service-request/${restaurantId}/${tableNumber}`);
-    return handleResponse<{ active_request: TableServiceRequest | null; latest_requests: TableServiceRequest[] }>(res);
-  },
-
-  async payTableBillOnline(payload: { restaurant_id: string; table_number: number; utr?: string; app?: string }) {
-    const res = await fetch(`${API_BASE}/public/table/pay-bill`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    return handleResponse<{ success: boolean; count: number; message: string }>(res);
-  },
-
-  async getSupabaseStatus() {
-    const res = await fetch(`${API_BASE}/supabase/status`);
-    return handleResponse<{
-      configured: boolean;
-      connected: boolean;
-      tables: Record<string, boolean>;
-      allReady: boolean;
-      cloudStoreReady: boolean;
-      message: string;
-      projectUrl: string;
-      lastSyncTime: string | null;
-      lastSyncStatus: string;
-      restaurantCount: number;
-      menuItemCount: number;
-    }>(res);
-  },
-
-  async syncSupabase() {
-    const res = await fetch(`${API_BASE}/supabase/sync`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader()
+    const catMap = new Map<string, any>();
+    filterOutTombstones(res.categories || []).forEach(c => catMap.set(c.id, c));
+    (journal.categories || []).forEach(c => {
+      if (
+        c?.id &&
+        (!currentRestId || c.restaurant_id === currentRestId) &&
+        !tombstones.has(String(c.id)) &&
+        !catMap.has(c.id)
+      ) {
+        catMap.set(c.id, c);
       }
     });
-    return handleResponse<{ success: boolean; message: string; synced: Record<string, number> }>(res);
-  },
 
-  async restoreSupabase() {
-    const res = await fetch(`${API_BASE}/supabase/restore`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader()
+    const itemMap = new Map<string, any>();
+    filterOutTombstones(res.items || []).forEach(i => itemMap.set(i.id, i));
+    (journal.menu_items || []).forEach(i => {
+      if (
+        i?.id &&
+        (!currentRestId || i.restaurant_id === currentRestId) &&
+        !tombstones.has(String(i.id)) &&
+        !tombstones.has(String(i.category_id)) &&
+        !itemMap.has(i.id)
+      ) {
+        itemMap.set(i.id, i);
       }
     });
-    return handleResponse<{ success: boolean; message: string; restoredCount: number }>(res);
-  },
 
-  async importBackup(backupData: any) {
-    const res = await fetch(`${API_BASE}/admin/backup/import`, {
+    return {
+      categories: Array.from(catMap.values()),
+      items: Array.from(itemMap.values()),
+    };
+  },
+  createCategory: async (data: any, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/categories${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader()
-      },
-      body: JSON.stringify({ backupData })
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
     });
-    return handleResponse<{ success: boolean; message: string; restaurantCount: number }>(res);
-  }
+    if (res?.id) upsertJournalRecord('categories', res);
+    return res;
+  },
+  updateCategory: async (id: string, data: any, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/categories/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
+    });
+    if (res?.id) upsertJournalRecord('categories', res);
+    return res;
+  },
+  deleteCategory: async (id: string, restaurantId?: string) => {
+    addTombstone(id);
+    const res = await request<any>(`/restaurant/categories/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'DELETE',
+    });
+    if (Array.isArray(res?.tombstones)) addTombstone(res.tombstones);
+    return res;
+  },
+  createMenuItem: async (data: any, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/items${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
+    });
+    if (res?.id) upsertJournalRecord('menu_items', res);
+    return res;
+  },
+  updateMenuItem: async (id: string, data: any, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/items/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
+    });
+    if (res?.id) upsertJournalRecord('menu_items', res);
+    return res;
+  },
+  deleteMenuItem: async (id: string, restaurantId?: string) => {
+    addTombstone(id);
+    const res = await request<any>(`/restaurant/items/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'DELETE',
+    });
+    if (Array.isArray(res?.tombstones)) addTombstone(res.tombstones);
+    return res;
+  },
+  duplicateMenuItem: async (id: string, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/items/${id}/duplicate${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+      body: JSON.stringify({ __journal: getClientJournal() }),
+    });
+    if (res?.id) upsertJournalRecord('menu_items', res);
+    return res;
+  },
+  getTables: async (restaurantId?: string) => {
+    const res = await request<any[]>(`/restaurant/tables${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`);
+    return filterOutTombstones(res);
+  },
+  createTable: async (data: any, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/tables${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
+    });
+    if (res?.id) upsertJournalRecord('tables', res);
+    return res;
+  },
+  updateTable: (id: string, data: any, restaurantId?: string) =>
+    request<any>(`/restaurant/tables/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  deleteTable: async (id: string, restaurantId?: string) => {
+    addTombstone(id);
+    return request<any>(`/restaurant/tables/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'DELETE',
+    });
+  },
+  getCoupons: async (restaurantId?: string) => {
+    const res = await request<any[]>(`/restaurant/coupons${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`);
+    return filterOutTombstones(res);
+  },
+  createCoupon: async (data: any, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/coupons${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
+    });
+    if (res?.id) upsertJournalRecord('coupons', res);
+    return res;
+  },
+  updateCoupon: (id: string, data: any, restaurantId?: string) =>
+    request<any>(`/restaurant/coupons/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  deleteCoupon: async (id: string, restaurantId?: string) => {
+    addTombstone(id);
+    return request<any>(`/restaurant/coupons/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'DELETE',
+    });
+  },
+  getOrders: async (restaurantId?: string) => {
+    const res = await request<any[]>(`/restaurant/orders${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`);
+    return filterOutTombstones(res);
+  },
+  updateOrderStatus: (id: string, order_status: string, restaurantId?: string) =>
+    request<any>(`/restaurant/orders/${id}/status${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ order_status }),
+    }),
+  editOrderItems: (
+    id: string,
+    items: { menu_item_id: string; quantity: number; notes?: string }[],
+    notes?: string,
+    restaurantId?: string
+  ) =>
+    request<any>(`/restaurant/orders/${id}/items${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PUT',
+      body: JSON.stringify({ items, notes }),
+    }),
+  updatePaymentStatus: (id: string, payment_status: string, payment_method?: string, restaurantId?: string) =>
+    request<any>(`/restaurant/orders/${id}/payment${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ payment_status, ...(payment_method ? { payment_method } : {}) }),
+    }),
+  updateOrderPayment: (id: string, payment_status: string, payment_method?: string, restaurantId?: string) =>
+    request<any>(`/restaurant/orders/${id}/payment${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ payment_status, ...(payment_method ? { payment_method } : {}) }),
+    }),
+  markOrderPaid: (id: string, restaurantId?: string) =>
+    request<any>(`/restaurant/orders/${id}/payment${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ payment_status: 'paid' }),
+    }),
+  completeOrderWithCash: (id: string, restaurantId?: string) =>
+    request<any>(`/restaurant/orders/${id}/complete-cash${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+    }),
+  deleteOrder: async (id: string, restaurantId?: string) => {
+    addTombstone(id);
+    return request<any>(`/restaurant/orders/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'DELETE',
+    });
+  },
+  dailyClearOrders: (restaurantId?: string) =>
+    request<any>(`/restaurant/orders/daily-clear${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+    }),
+  getArchivedOrderHistory: (date?: string, restaurantId?: string) => {
+    const params = new URLSearchParams();
+    if (date) params.set('date', date);
+    if (restaurantId) params.set('restaurant_id', restaurantId);
+    const qs = params.toString();
+    return request<{ dates: string[]; records: any[] }>(`/restaurant/orders/history${qs ? `?${qs}` : ''}`);
+  },
+  getCustomers: (restaurantId?: string) =>
+    request<any[]>(`/restaurant/customers${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`),
+  getStaff: async (restaurantId?: string) => {
+    const res = await request<any[]>(`/restaurant/staff${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`);
+    return filterOutTombstones(res);
+  },
+  addStaff: async (data: any, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/staff${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
+    });
+    if (res?.id) {
+      upsertJournalRecord('users', {
+        ...res,
+        plain_password: data?.password ? String(data.password).trim() : undefined,
+      });
+    }
+    return res;
+  },
+  updateStaffPassword: (id: string, new_password: string, restaurantId?: string) =>
+    request<any>(`/restaurant/staff/${id}/password${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ new_password }),
+    }),
+  deleteStaff: async (id: string, restaurantId?: string) => {
+    addTombstone(id);
+    return request<any>(`/restaurant/staff/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'DELETE',
+    });
+  },
+  getServiceRequests: (restaurantId?: string) =>
+    request<any[]>(`/restaurant/service-requests${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`),
+  updateServiceRequest: (id: string, status: string, restaurantId?: string) =>
+    request<any>(`/restaurant/service-requests/${id}${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+  clearResolvedServiceRequests: (restaurantId?: string) =>
+    request<any>(`/restaurant/service-requests/clear-resolved${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+    }),
+  settleTableBill: (tableNum: number | string, payment_method?: string, restaurantId?: string) =>
+    request<any>(
+      `/restaurant/tables/${tableNum}/settle-bill${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ payment_method }),
+      }
+    ),
+  waiterPunchOrder: async (data: Record<string, any>, restaurantId?: string) => {
+    const res = await request<any>(`/restaurant/orders/punch${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
+    });
+    if (res?.order?.id) upsertJournalRecord('orders', res.order);
+    return res;
+  },
+  getAnalytics: (restaurantId?: string) =>
+    request<any>(`/restaurant/analytics${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`),
+  getTableRunningBill: (tableId: string, restaurantId?: string) =>
+    request<any>(`/restaurant/tables/${tableId}/running-bill${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`),
+  settleTable: (tableId: string, restaurantId?: string) =>
+    request<any>(`/restaurant/tables/${tableId}/settle${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'POST',
+    }),
+  verifyOrderCode: (orderId: string, code: string) =>
+    request<any>(`/restaurant/orders/${orderId}/verify-code`, {
+      method: 'PATCH',
+      body: JSON.stringify({ code }),
+    }),
+  updateRestaurantOperations: (data: Record<string, any>, restaurantId?: string) =>
+    request<any>(`/restaurant/settings/operations${restaurantId ? `?restaurant_id=${restaurantId}` : ''}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  // Public Customer QR Menu
+  getPublicMenu: async (slug: string) => {
+    await syncClientJournalToServer();
+    const res = await request<any>(`/public/menu/${slug}`);
+    if (res?.items) res.items = filterOutTombstones(res.items);
+    if (res?.categories) res.categories = filterOutTombstones(res.categories);
+    return res;
+  },
+  getPublicTableMenu: async (slug: string, tableNum: string | number) => {
+    await syncClientJournalToServer();
+    const res = await request<any>(`/public/menu/${slug}/table/${tableNum}`);
+    if (res?.items) res.items = filterOutTombstones(res.items);
+    if (res?.categories) res.categories = filterOutTombstones(res.categories);
+    return res;
+  },
+  getPublicTableOrders: (slug: string, tableNum: string | number) =>
+    request<any>(`/public/table/${slug}/${tableNum}/orders`),
+  getRecentOrders: (data: Record<string, any>) =>
+    request<any>('/public/orders/recent', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  customerPhoneLogin: (data: { name: string; phone: string; restaurant_id?: string }) =>
+    request<any>('/public/customer/login', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getCustomerPastOrders: (phone: string, restaurant_id?: string) =>
+    request<any>(
+      `/public/customer/orders?phone=${encodeURIComponent(phone)}${restaurant_id ? `&restaurant_id=${restaurant_id}` : ''}`
+    ),
+  callWaiter: (data: Record<string, any>) =>
+    request<any>('/public/table/service-request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getTableServiceRequest: (restaurantId: string, tableNumber: number | string) =>
+    request<any>(`/public/table/service-request/${restaurantId}/${tableNumber}`),
+  payTableBillOnline: (data: Record<string, any>) =>
+    request<any>('/public/table/pay-bill', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  validateCoupon: (restaurant_id: string, code: string, subtotal: number) =>
+    request<any>('/public/coupon/validate', {
+      method: 'POST',
+      body: JSON.stringify({ restaurant_id, code, subtotal }),
+    }),
+  placeOrder: (data: any) =>
+    request<any>('/public/order', {
+      method: 'POST',
+      body: JSON.stringify({ ...data, __journal: getClientJournal() }),
+    }),
+  verifyOnlinePayment: (orderId: string, status: 'paid' | 'failed', extra?: Record<string, any>) =>
+    request<any>(`/public/order/${orderId}/verify-payment`, {
+      method: 'POST',
+      body: JSON.stringify({ status, ...extra }),
+    }),
+  verifyPayment: (orderId: string, status: 'paid' | 'failed', extra?: Record<string, any>) =>
+    request<any>(`/public/order/${orderId}/verify-payment`, {
+      method: 'POST',
+      body: JSON.stringify({ status, ...extra }),
+    }),
 };
-

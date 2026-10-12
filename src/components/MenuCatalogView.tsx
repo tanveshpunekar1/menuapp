@@ -198,7 +198,6 @@ export const MenuCatalogView: React.FC<MenuCatalogViewProps> = ({
 
   // Delete Product
   const handleDeleteProduct = async (item: MenuItem) => {
-    if (!confirm(`Are you sure you want to delete "${item.name}"?`)) return;
     try {
       await api.deleteMenuItem(item.id, adminRestaurantId);
       showToast('Product removed from catalog', 'success');

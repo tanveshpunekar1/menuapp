@@ -1,17 +1,15 @@
-'use client';
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Restaurant } from '../types';
-import { api } from '../lib/api';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import type { User, Restaurant } from '../types';
+import { api, syncClientJournalToServer } from '../lib/api';
 
 interface AuthContextType {
   user: User | null;
   restaurant: Restaurant | null;
+  token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<string>;
   logout: () => void;
-  refreshUser: () => Promise<void>;
-  setRestaurant: (rest: Restaurant | null) => void;
+  setRestaurant: React.Dispatch<React.SetStateAction<Restaurant | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,42 +31,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     }
   });
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('restoqr_token'));
+  const [loading, setLoading] = useState<boolean>(() => {
+    const hasToken = !!localStorage.getItem('restoqr_token');
+    const hasSavedUser = !!localStorage.getItem('restoqr_user');
+    return hasToken && !hasSavedUser;
+  });
+
+  // Track latest auth action epoch so an in-flight initAuth() never overwrites a newer login()
+  const authEpochRef = useRef(0);
 
   useEffect(() => {
+    const currentEpoch = ++authEpochRef.current;
+
     const initAuth = async () => {
-      const token = localStorage.getItem('restoqr_token');
-      if (!token) {
-        setLoading(false);
+      const storedToken = localStorage.getItem('restoqr_token');
+      if (!storedToken) {
+        if (authEpochRef.current === currentEpoch) {
+          setLoading(false);
+        }
         return;
       }
 
       try {
-        const data = await api.getMe();
-        setUser(data.user);
-        setRestaurant(data.restaurant);
-        localStorage.setItem('restoqr_user', JSON.stringify(data.user));
-        if (data.restaurant) {
-          localStorage.setItem('restoqr_restaurant', JSON.stringify(data.restaurant));
+        await syncClientJournalToServer();
+        const res = await api.getMe();
+        if (authEpochRef.current !== currentEpoch) return;
+        if (res && res.user) {
+          setUser(res.user);
+          localStorage.setItem('restoqr_user', JSON.stringify(res.user));
+          if (res.restaurant) {
+            setRestaurant(res.restaurant);
+            localStorage.setItem('restoqr_restaurant', JSON.stringify(res.restaurant));
+          }
         }
-      } catch (err) {
-        console.warn('Session verification failed:', err);
-        const cachedUser = localStorage.getItem('restoqr_user');
-        if (!cachedUser) {
+      } catch (err: any) {
+        if (authEpochRef.current !== currentEpoch) return;
+        const savedUserStr = localStorage.getItem('restoqr_user');
+        if (!savedUserStr && (err?.status === 401 || err?.message?.includes('401') || err?.message?.includes('Authentication required'))) {
           localStorage.removeItem('restoqr_token');
+          localStorage.removeItem('restoqr_user');
+          localStorage.removeItem('restoqr_restaurant');
+          setToken(null);
           setUser(null);
           setRestaurant(null);
         }
       } finally {
-        setLoading(false);
+        if (authEpochRef.current === currentEpoch) {
+          setLoading(false);
+        }
       }
     };
 
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const res = await api.login(email, password);
+  const login = async (email: string, password: string): Promise<string> => {
+    authEpochRef.current += 1;
+    const res = await api.login({ email: email.trim(), password: password.trim() });
+
     localStorage.setItem('restoqr_token', res.token);
     localStorage.setItem('restoqr_user', JSON.stringify(res.user));
     if (res.restaurant) {
@@ -76,36 +97,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       localStorage.removeItem('restoqr_restaurant');
     }
+
+    setToken(res.token);
     setUser(res.user);
-    setRestaurant(res.restaurant);
-    return res.redirectUrl;
+    setRestaurant(res.restaurant || null);
+    setLoading(false);
+
+    if (res.user.role === 'platform_admin') {
+      return '/admin';
+    }
+    if (res.user.role === 'waiter' || res.user.role === 'kitchen_staff') {
+      return '/restaurant/pos';
+    }
+    return '/restaurant';
   };
 
   const logout = () => {
+    authEpochRef.current += 1;
     localStorage.removeItem('restoqr_token');
     localStorage.removeItem('restoqr_user');
     localStorage.removeItem('restoqr_restaurant');
+    setToken(null);
     setUser(null);
     setRestaurant(null);
-    window.location.href = '/login';
-  };
-
-  const refreshUser = async () => {
-    try {
-      const data = await api.getMe();
-      setUser(data.user);
-      setRestaurant(data.restaurant);
-      localStorage.setItem('restoqr_user', JSON.stringify(data.user));
-      if (data.restaurant) {
-        localStorage.setItem('restoqr_restaurant', JSON.stringify(data.restaurant));
-      }
-    } catch (err) {
-      console.error('Failed to refresh user:', err);
-    }
+    setLoading(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, restaurant, loading, login, logout, refreshUser, setRestaurant }}>
+    <AuthContext.Provider value={{ user, restaurant, token, loading, login, logout, setRestaurant }}>
       {children}
     </AuthContext.Provider>
   );

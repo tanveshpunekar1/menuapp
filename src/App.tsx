@@ -6,123 +6,123 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { RestaurantDashboard } from './pages/RestaurantDashboard';
 import { CustomerMenu } from './pages/CustomerMenu';
 import { StaffFloorPortal } from './components/StaffFloorPortal';
+import { DebugPanel } from './components/DebugPanel';
 
-function AppContent() {
+function getResolvedPath(): string {
+  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+  const qrSlug = params.get('qr_slug');
+  const qrTable = params.get('qr_table');
+  if (qrSlug && qrTable && !path.startsWith('/menu/')) {
+    const cleanPath = `/menu/${qrSlug}/table/${qrTable}`;
+    try {
+      window.history.replaceState({}, '', cleanPath);
+    } catch {
+      // Ignore history errors in restricted webviews
+    }
+    return cleanPath;
+  }
+  return path;
+}
+
+const AppContent: React.FC = () => {
+  const [currentPath, setCurrentPath] = useState(getResolvedPath);
   const { user, loading } = useAuth();
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
-  // Track if the user entered or is viewing a customer QR menu so back navigation can never open the cafe dashboard
-  const [lockedMenuPath, setLockedMenuPath] = useState<string | null>(() =>
-    window.location.pathname.startsWith('/menu') ? window.location.pathname : null
-  );
 
-  // Sync with browser navigation while protecting customer QR menu sessions from going back to dashboard
   useEffect(() => {
-    const handlePopState = () => {
-      const nextPath = window.location.pathname;
-      if (lockedMenuPath && !nextPath.startsWith('/menu')) {
-        // Prevent browser Back button from leaving customer QR menu into cafe dashboard
-        window.history.pushState({}, '', lockedMenuPath);
-        setCurrentPath(lockedMenuPath);
-        return;
-      }
-      if (nextPath.startsWith('/menu')) {
-        setLockedMenuPath(nextPath);
-      }
-      setCurrentPath(nextPath);
-    };
+    const handlePopState = () => setCurrentPath(getResolvedPath());
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [lockedMenuPath]);
+  }, []);
 
   const navigate = (path: string) => {
-    // If currently in customer QR menu, never allow navigating to /login, /admin, or /restaurant
-    if ((currentPath.startsWith('/menu') || lockedMenuPath) && !path.startsWith('/menu')) {
-      return;
-    }
-    if (path.startsWith('/menu')) {
-      setLockedMenuPath(path);
+    if (sessionStorage.getItem('restoqr_customer_qr_lock') === 'true') {
+      if (!path.startsWith('/menu/')) {
+        return;
+      }
     }
     window.history.pushState({}, '', path);
     setCurrentPath(path);
+    window.scrollTo(0, 0);
   };
 
-  if (loading && !currentPath.startsWith('/menu')) {
+  // Customer QR Menu Route: /menu/:slug/table/:tableNumber or /menu/:slug
+  const menuMatch =
+    currentPath.match(/^\/menu\/([^/]+)\/table\/(\d+)/) ||
+    currentPath.match(/^\/menu\/([^/]+)\/?$/);
+
+  useEffect(() => {
+    if (menuMatch) {
+      sessionStorage.setItem('restoqr_customer_qr_lock', 'true');
+    }
+  }, [menuMatch]);
+
+  // Normalize URL for logged-in users inside useEffect (never during render)
+  useEffect(() => {
+    if (loading || menuMatch || !user) return;
+    const isStaffOnly = user.role === 'waiter' || user.role === 'kitchen_staff';
+    if (isStaffOnly && currentPath !== '/restaurant/pos') {
+      window.history.replaceState({}, '', '/restaurant/pos');
+      setCurrentPath('/restaurant/pos');
+      return;
+    }
+    if (currentPath === '/login' || currentPath === '/') {
+      const target =
+        user.role === 'platform_admin'
+          ? '/admin'
+          : isStaffOnly
+            ? '/restaurant/pos'
+            : '/restaurant';
+      window.history.replaceState({}, '', target);
+      setCurrentPath(target);
+    }
+  }, [loading, menuMatch, user, currentPath]);
+
+  if (menuMatch) {
+    const slug = decodeURIComponent(menuMatch[1]);
+    const tableNum = menuMatch[2] ? parseInt(menuMatch[2], 10) : undefined;
+    return <CustomerMenu slug={slug} tableNumber={tableNum} onNavigate={navigate} />;
+  }
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-[#FF5C38]/20 border-t-[#FF5C38] rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-bold text-slate-500">Loading RestoQR Platform...</p>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-400 text-sm font-medium">Loading RestoQR Platform...</p>
         </div>
       </div>
     );
   }
 
-  // 1. Check if Customer Menu route: /menu/:slug or /menu/:slug/table/:tableNum
-  const effectivePath = lockedMenuPath || currentPath;
-  if (effectivePath.startsWith('/menu')) {
-    const parts = effectivePath.split('/').filter(Boolean);
-    // parts[0] === 'menu', parts[1] === slug, parts[2] === 'table', parts[3] === tableNum
-    const slug = parts[1] || 'urban-bites-cafe';
-    let tableNum: number | undefined;
-
-    if (parts[2] === 'table' && parts[3]) {
-      const parsed = parseInt(parts[3], 10);
-      if (!isNaN(parsed)) {
-        tableNum = parsed;
-      }
-    }
-
-    return <CustomerMenu slug={slug} tableNumber={tableNum} onNavigate={navigate} />;
-  }
-
-  // 2. Role-based Route Protection
-  // If not logged in -> ALWAYS show Login page as required by Requirement #2
+  // If not logged in, show Login
   if (!user) {
     return <Login onNavigate={navigate} />;
   }
 
-  // If Super Admin tries to access
+  // Super Admin Protected Route
   if (user.role === 'platform_admin') {
-    if (currentPath.startsWith('/admin') || currentPath === '/' || currentPath === '/login') {
-      return <AdminDashboard onNavigate={navigate} />;
-    }
-    // Admin can also view restaurant dashboard if requested
-    if (currentPath.startsWith('/restaurant')) {
-      const tab = currentPath.split('/')[2] || 'dashboard';
-      return <RestaurantDashboard onNavigate={navigate} initialTab={tab} />;
-    }
     return <AdminDashboard onNavigate={navigate} />;
   }
 
-  // If Restaurant User (Owner, Manager, Kitchen, Waiter) tries to access /admin -> DENY
-  if (currentPath.startsWith('/admin')) {
-    navigate('/restaurant/pos');
-    return <RestaurantDashboard onNavigate={navigate} initialTab="pos" />;
-  }
-
-  // Specific staff routing
-  if (user.role === 'kitchen_staff') {
-    return <RestaurantDashboard onNavigate={navigate} initialTab="kitchen" />;
-  }
-
-  if (user.role === 'waiter' || currentPath === '/restaurant/floor') {
+  // Dedicated Staff / Waiter Floor Portal
+  if (user.role === 'waiter' || user.role === 'kitchen_staff' || currentPath === '/restaurant/pos') {
     return <StaffFloorPortal onNavigate={navigate} />;
   }
 
-  // Default Restaurant dashboard - Default to 'pos' matching sample screenshot
-  const restaurantTab = currentPath.startsWith('/restaurant/')
-    ? currentPath.split('/')[2]
-    : 'pos';
+  // Restaurant Owner / Manager Dashboard
+  return <RestaurantDashboard onNavigate={navigate} />;
+};
 
-  return <RestaurantDashboard onNavigate={navigate} initialTab={restaurantTab} />;
-}
-
-export default function App() {
+export function App() {
   return (
     <AuthProvider>
       <ToastProvider>
         <AppContent />
+        <DebugPanel />
       </ToastProvider>
     </AuthProvider>
   );
 }
+
+export default App;

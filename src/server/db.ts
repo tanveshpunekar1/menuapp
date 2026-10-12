@@ -33,6 +33,7 @@ export interface DatabaseSchema {
   activity_logs: ActivityLog[];
   service_requests: TableServiceRequest[];
   next_order_number: number;
+  tombstones?: string[];
 }
 
 const BUNDLED_DATA_DIR = path.resolve(process.cwd(), 'data');
@@ -168,6 +169,10 @@ function getInitialData(): DatabaseSchema {
         rating: 4.8,
         rating_count: 428,
         supported_languages: ['en', 'hi', 'mr'],
+        active_theme: 'classic',
+        allowed_themes: ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand'],
+        can_customize_theme: true,
+        theme_config: {},
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
@@ -785,7 +790,21 @@ class Database {
     if (!data.customers) data.customers = [];
     if (!data.activity_logs) data.activity_logs = [];
     if (!data.service_requests) data.service_requests = [];
+    if (!Array.isArray(data.tombstones)) data.tombstones = [];
     if (typeof data.next_order_number !== 'number') data.next_order_number = 1042;
+
+    // Permanently purge any tombstoned (deleted) IDs so they never come back
+    if (data.tombstones.length > 0) {
+      const dead = new Set<string>(data.tombstones.map((id: any) => String(id)));
+      data.restaurants = data.restaurants.filter((r: any) => !dead.has(String(r.id)));
+      data.users = data.users.filter((u: any) => !dead.has(String(u.id)) && (!u.restaurant_id || !dead.has(String(u.restaurant_id))));
+      data.subscriptions = data.subscriptions.filter((s: any) => !dead.has(String(s.id)) && !dead.has(String(s.restaurant_id)));
+      data.categories = data.categories.filter((c: any) => !dead.has(String(c.id)) && !dead.has(String(c.restaurant_id)));
+      data.menu_items = data.menu_items.filter((m: any) => !dead.has(String(m.id)) && !dead.has(String(m.restaurant_id)));
+      data.tables = data.tables.filter((t: any) => !dead.has(String(t.id)) && !dead.has(String(t.restaurant_id)));
+      data.coupons = data.coupons.filter((c: any) => !dead.has(String(c.id)) && !dead.has(String(c.restaurant_id)));
+      data.orders = data.orders.filter((o: any) => !dead.has(String(o.id)) && !dead.has(String(o.restaurant_id)));
+    }
 
     const adminHash = process.env.ADMIN_PASSWORD
       ? bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10)
@@ -816,7 +835,6 @@ class Database {
       if (!existingAdmin) {
         data.users.push(initUser);
       } else if (process.env.ADMIN_PASSWORD) {
-        // If ADMIN_PASSWORD is set in Vercel / .env, enforce it over the public repo default
         existingAdmin.password_hash = adminHash;
         existingAdmin.plain_password = process.env.ADMIN_PASSWORD;
       }
@@ -847,6 +865,21 @@ class Database {
       if (r.rating === undefined) r.rating = 4.8;
       if (r.rating_count === undefined) r.rating_count = 428;
       if (!r.supported_languages) r.supported_languages = ['en', 'hi', 'mr'];
+      if (!r.active_theme) r.active_theme = 'classic';
+      if (!Array.isArray(r.allowed_themes) || r.allowed_themes.length === 0) {
+        r.allowed_themes =
+          r.plan === 'pro' || r.plan === 'custom'
+            ? ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand']
+            : r.plan === 'growth'
+              ? ['classic', 'hot_ready', 'premium_cafe', 'modern_app']
+              : ['classic'];
+      }
+      if (r.can_customize_theme === undefined) {
+        r.can_customize_theme = r.plan !== 'starter';
+      }
+      if (!r.theme_config || typeof r.theme_config !== 'object') {
+        r.theme_config = {};
+      }
     });
   }
 
@@ -871,9 +904,262 @@ class Database {
     }
   }
 
+  public hasSyncedFromCloud: boolean = false;
+  public hasLocalMutations: boolean = false;
+  private initialLoadPromise: Promise<void> | null = null;
+
+  public recordTombstone(id: string) {
+    if (!id) return;
+    if (!Array.isArray(this.data.tombstones)) {
+      this.data.tombstones = [];
+    }
+    const cleanId = String(id).trim();
+    if (cleanId && !this.data.tombstones.includes(cleanId)) {
+      this.data.tombstones.push(cleanId);
+    }
+    this.hasLocalMutations = true;
+  }
+
+  public applyTombstones(ids: string[]) {
+    if (!Array.isArray(ids) || ids.length === 0) return;
+    let changed = false;
+    if (!Array.isArray(this.data.tombstones)) {
+      this.data.tombstones = [];
+    }
+    for (const rawId of ids) {
+      const id = String(rawId || '').trim();
+      if (id && !this.data.tombstones.includes(id)) {
+        this.data.tombstones.push(id);
+        changed = true;
+      }
+    }
+    const dead = new Set<string>(this.data.tombstones);
+    const prevCounts =
+      this.data.restaurants.length +
+      this.data.menu_items.length +
+      this.data.categories.length +
+      this.data.tables.length +
+      this.data.coupons.length +
+      this.data.users.length +
+      this.data.orders.length;
+
+    this.data.restaurants = this.data.restaurants.filter(r => !dead.has(String(r.id)));
+    this.data.users = this.data.users.filter(u => !dead.has(String(u.id)) && (!u.restaurant_id || !dead.has(String(u.restaurant_id))));
+    this.data.subscriptions = this.data.subscriptions.filter(s => !dead.has(String(s.id)) && !dead.has(String(s.restaurant_id)));
+    this.data.categories = this.data.categories.filter(c => !dead.has(String(c.id)) && !dead.has(String(c.restaurant_id)));
+    this.data.menu_items = this.data.menu_items.filter(m => !dead.has(String(m.id)) && !dead.has(String(m.restaurant_id)));
+    this.data.tables = this.data.tables.filter(t => !dead.has(String(t.id)) && !dead.has(String(t.restaurant_id)));
+    this.data.coupons = this.data.coupons.filter(c => !dead.has(String(c.id)) && !dead.has(String(c.restaurant_id)));
+    this.data.orders = this.data.orders.filter(o => !dead.has(String(o.id)) && !dead.has(String(o.restaurant_id)));
+
+    const nextCounts =
+      this.data.restaurants.length +
+      this.data.menu_items.length +
+      this.data.categories.length +
+      this.data.tables.length +
+      this.data.coupons.length +
+      this.data.users.length +
+      this.data.orders.length;
+
+    if (changed || prevCounts !== nextCounts) {
+      this.hasLocalMutations = true;
+      this.saveData(this.data);
+    }
+  }
+
+  public applyClientJournal(journal: any) {
+    if (!journal || typeof journal !== 'object') return;
+    let mutated = false;
+
+    if (Array.isArray(journal.tombstones) && journal.tombstones.length > 0) {
+      this.applyTombstones(journal.tombstones);
+    }
+
+    const dead = new Set<string>(this.data.tombstones || []);
+
+    const mergeCollection = <T extends { id: string }>(
+      current: T[],
+      incomingMapOrArr: Record<string, T> | T[] | undefined,
+      matchFn?: (existing: T, inc: T) => boolean
+    ) => {
+      if (!incomingMapOrArr) return;
+      const list: T[] = Array.isArray(incomingMapOrArr) ? incomingMapOrArr : Object.values(incomingMapOrArr);
+      for (const item of list) {
+        if (!item || !item.id || dead.has(String(item.id))) continue;
+        const idx = current.findIndex(existing => existing.id === item.id || (matchFn ? matchFn(existing, item) : false));
+        if (idx === -1) {
+          current.push(item);
+          mutated = true;
+        } else {
+          current[idx] = { ...current[idx], ...item };
+          mutated = true;
+        }
+      }
+    };
+
+    if (journal.restaurants) {
+      const restList: any[] = Array.isArray(journal.restaurants) ? journal.restaurants : Object.values(journal.restaurants);
+      for (const rest of restList) {
+        if (!rest || !rest.id || dead.has(String(rest.id))) continue;
+        const idx = this.data.restaurants.findIndex(r => r.id === rest.id || r.slug === rest.slug);
+        if (idx === -1) {
+          this.data.restaurants.push(rest);
+          mutated = true;
+          // Ensure subscription & default tables/categories exist for this hydrated restaurant
+          if (!this.data.subscriptions.some(s => s.restaurant_id === rest.id)) {
+            this.data.subscriptions.push({
+              id: `sub-${rest.id}`,
+              restaurant_id: rest.id,
+              plan: rest.plan || 'growth',
+              price: 1999,
+              start_date: new Date().toISOString().split('T')[0],
+              expiry_date: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().split('T')[0],
+              status: 'active',
+              payment_status: 'paid',
+              payment_method: 'Admin Provisioned'
+            });
+          }
+          if (!this.data.tables.some(t => t.restaurant_id === rest.id)) {
+            const count = Number(rest.max_tables || rest.table_count) || 8;
+            for (let i = 1; i <= count; i++) {
+              this.data.tables.push({
+                id: `tbl-${rest.id}-${i}`,
+                restaurant_id: rest.id,
+                table_number: i,
+                capacity: i % 2 === 0 ? 4 : 2,
+                status: 'available',
+                created_at: new Date().toISOString()
+              });
+            }
+          }
+          if (!this.data.categories.some(c => c.restaurant_id === rest.id)) {
+            const defaultCatId = `cat-${rest.id}-1`;
+            this.data.categories.push({
+              id: defaultCatId,
+              restaurant_id: rest.id,
+              name: 'Chef Specials',
+              sort_order: 1,
+              is_active: true,
+              created_at: new Date().toISOString()
+            });
+            if (!this.data.menu_items.some(m => m.restaurant_id === rest.id)) {
+              this.data.menu_items.push({
+                id: `item-${rest.id}-1`,
+                restaurant_id: rest.id,
+                category_id: defaultCatId,
+                name: `${rest.name} Signature Dish`,
+                description: 'House specialty crafted with fresh local ingredients and signature seasonings.',
+                price: 249,
+                image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80',
+                weight: '300g',
+                is_veg: true,
+                spicy_level: 1,
+                prep_time: 15,
+                is_available: true,
+                is_bestseller: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+            }
+          }
+        } else {
+          this.data.restaurants[idx] = { ...this.data.restaurants[idx], ...rest };
+          mutated = true;
+        }
+      }
+    }
+
+    if (journal.users) {
+      const userList: any[] = Array.isArray(journal.users) ? journal.users : Object.values(journal.users);
+      for (const u of userList) {
+        if (!u || !u.email || dead.has(String(u.id))) continue;
+        const cleanEmail = String(u.email).trim().toLowerCase();
+        const existingIdx = this.data.users.findIndex(
+          eu => eu.id === u.id || (eu.email && eu.email.toLowerCase() === cleanEmail)
+        );
+        const passwordHash = u.password_hash || (u.plain_password ? bcrypt.hashSync(String(u.plain_password), 10) : '');
+        if (existingIdx === -1) {
+          this.data.users.push({
+            id: u.id || `usr-${Date.now()}`,
+            name: u.name || cleanEmail.split('@')[0],
+            email: cleanEmail,
+            role: u.role || 'restaurant_owner',
+            restaurant_id: u.restaurant_id,
+            password_hash: passwordHash,
+            plain_password: u.plain_password,
+            created_at: u.created_at || new Date().toISOString()
+          });
+          mutated = true;
+        } else {
+          const target = this.data.users[existingIdx];
+          if (u.name) target.name = u.name;
+          if (u.role) target.role = u.role;
+          if (u.restaurant_id) target.restaurant_id = u.restaurant_id;
+          if (u.plain_password) {
+            target.plain_password = u.plain_password;
+            target.password_hash = bcrypt.hashSync(String(u.plain_password), 10);
+          }
+          mutated = true;
+        }
+      }
+    }
+
+    mergeCollection(this.data.categories, journal.categories);
+    mergeCollection(this.data.menu_items, journal.items);
+    mergeCollection(this.data.tables, journal.tables);
+    mergeCollection(this.data.coupons, journal.coupons);
+    mergeCollection(this.data.orders, journal.orders);
+
+    if (mutated) {
+      this.hasLocalMutations = true;
+      this.saveData(this.data);
+    }
+  }
+
   public save() {
+    this.hasLocalMutations = true;
     this.saveData(this.data);
     this.scheduleCloudSync();
+  }
+
+  public async commitAndSync(): Promise<void> {
+    this.hasLocalMutations = true;
+    this.saveData(this.data);
+    if (!this.supabase || !this.isCloudConfigured) return;
+    if (this.syncTimeout) {
+      clearTimeout(this.syncTimeout);
+      this.syncTimeout = null;
+    }
+    try {
+      await this.supabase.from('restoqr_cloud_store').upsert({
+        key: 'restoqr_master_db',
+        data: this.data,
+        updated_at: new Date().toISOString()
+      });
+    } catch {
+      // Fallback to relational sync if cloud_store not created
+    }
+    try {
+      await this.syncToSupabase();
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  public async ensureCloudLoaded(): Promise<void> {
+    if (this.hasSyncedFromCloud || this.hasLocalMutations || !this.supabase || !this.isCloudConfigured) return;
+    if (!this.initialLoadPromise) {
+      this.initialLoadPromise = (async () => {
+        try {
+          await this.syncFromSupabase();
+        } catch {
+          // ignore
+        } finally {
+          this.hasSyncedFromCloud = true;
+        }
+      })();
+    }
+    await this.initialLoadPromise;
   }
 
   public get<K extends keyof DatabaseSchema>(key: K): DatabaseSchema[K] {
@@ -886,8 +1172,16 @@ class Database {
   }
 
   public update(fn: (data: DatabaseSchema) => void) {
+    this.hasLocalMutations = true;
     fn(this.data);
     this.save();
+  }
+
+  public async updateAndSync(fn: (data: DatabaseSchema) => void): Promise<void> {
+    await this.ensureCloudLoaded();
+    this.hasLocalMutations = true;
+    fn(this.data);
+    await this.commitAndSync();
   }
 
   public resetToDefaults() {
@@ -920,10 +1214,10 @@ class Database {
     if (!this.supabase || !this.isCloudConfigured) return;
     if (this.syncTimeout) clearTimeout(this.syncTimeout);
     this.syncTimeout = setTimeout(() => {
-      this.syncToSupabase().catch(err => {
+      this.commitAndSync().catch(err => {
         console.warn('[Database] Background cloud sync notice:', err.message);
       });
-    }, 2000);
+    }, 300);
   }
 
   public async checkSupabase(): Promise<{
@@ -1027,18 +1321,79 @@ class Database {
     // 2. If relational tables are available, sync each entity table
     if (check.tables['restaurants']) {
       try {
-        const rests = this.data.restaurants.map(r => ({
-          ...r,
+        const baseRests = this.data.restaurants.map(r => ({
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          logo: r.logo || '',
+          cover_image: r.cover_image || '',
+          phone: r.phone || '',
+          email: r.email || '',
+          address: r.address || '',
+          city: r.city || '',
+          state: r.state || '',
+          pincode: r.pincode || '',
+          description: r.description || '',
+          opening_time: r.opening_time || '10:00 AM',
+          closing_time: r.closing_time || '11:00 PM',
+          cuisine_type: r.cuisine_type || 'Multi-Cuisine',
+          wifi_info: r.wifi_info || '',
+          status: r.status || 'active',
+          plan: r.plan || 'growth',
+          owner_id: r.owner_id,
+          tax_rate: r.tax_rate ?? 5,
+          service_charge_rate: r.service_charge_rate ?? 5,
+          accepting_orders: r.accepting_orders ?? true,
+          order_validation_enabled: r.order_validation_enabled ?? false,
+          rating: r.rating ?? 4.8,
+          rating_count: r.rating_count ?? 428,
           supported_languages: r.supported_languages || ['en', 'hi', 'mr'],
-          enabled_payments: r.enabled_payments || { online: true, cash_table: true, cash_counter: true }
+          enabled_payments: r.enabled_payments || { online: true, cash_table: true, cash_counter: true },
+          upi_id: r.upi_id || '',
+          upi_payee_name: r.upi_payee_name || '',
+          service_expires_at: r.service_expires_at || null,
+          is_banned: r.is_banned ?? false,
+          ban_reason: r.ban_reason || null,
+          created_at: r.created_at,
+          updated_at: r.updated_at
         }));
-        if (rests.length > 0) {
-          const { error } = await this.supabase.from('restaurants').upsert(rests, { onConflict: 'id' });
-          if (!error) stats['restaurants'] = rests.length;
+        const restsWithThemes = this.data.restaurants.map((r, idx) => ({
+          ...baseRests[idx],
+          active_theme: r.active_theme || 'classic',
+          allowed_themes: r.allowed_themes || ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand'],
+          can_customize_theme: r.can_customize_theme ?? true,
+          theme_config: r.theme_config || {}
+        }));
+        if (restsWithThemes.length > 0) {
+          const { error } = await this.supabase.from('restaurants').upsert(restsWithThemes, { onConflict: 'id' });
+          if (!error) {
+            stats['restaurants'] = restsWithThemes.length;
+          } else {
+            const { error: fallbackErr } = await this.supabase.from('restaurants').upsert(baseRests, { onConflict: 'id' });
+            if (!fallbackErr) stats['restaurants'] = baseRests.length;
+          }
         }
       } catch (e: any) {
         console.warn('[Database] Restaurants cloud sync:', e.message);
       }
+    }
+
+    if (check.tables['profiles']) {
+      try {
+        const profilesToSync = this.data.users.map(u => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          role: u.role,
+          restaurant_id: u.restaurant_id || null,
+          password_hash: u.password_hash,
+          created_at: u.created_at
+        }));
+        if (profilesToSync.length > 0) {
+          const { error } = await this.supabase.from('profiles').upsert(profilesToSync, { onConflict: 'id' });
+          if (!error) stats['profiles'] = profilesToSync.length;
+        }
+      } catch (e: any) {}
     }
 
     if (check.tables['categories']) {
@@ -1140,6 +1495,8 @@ class Database {
       throw new Error('Supabase is not configured.');
     }
 
+    const currentTombstones = Array.isArray(this.data.tombstones) ? [...this.data.tombstones] : [];
+
     // 1. Try restoring from restoqr_cloud_store first (complete JSON backup)
     try {
       const { data: cloudStoreData, error: csErr } = await this.supabase
@@ -1150,6 +1507,8 @@ class Database {
 
       if (!csErr && cloudStoreData?.data && Array.isArray(cloudStoreData.data.restaurants)) {
         if (cloudStoreData.data.restaurants.length > 0) {
+          const mergedTombstones = Array.from(new Set([...currentTombstones, ...(cloudStoreData.data.tombstones || [])]));
+          cloudStoreData.data.tombstones = mergedTombstones;
           this.sanitizeData(cloudStoreData.data);
           this.data = cloudStoreData.data;
           this.saveData(this.data);
@@ -1166,13 +1525,14 @@ class Database {
     try {
       const { data: cloudRestaurants, error: restErr } = await this.supabase.from('restaurants').select('*');
       if (!restErr && cloudRestaurants && cloudRestaurants.length > 0) {
-        const [catsRes, itemsRes, tablesRes, ordersRes, couponsRes, customersRes] = await Promise.all([
+        const [catsRes, itemsRes, tablesRes, ordersRes, couponsRes, customersRes, profilesRes] = await Promise.all([
           this.supabase.from('categories').select('*'),
           this.supabase.from('menu_items').select('*'),
           this.supabase.from('tables').select('*'),
           this.supabase.from('orders').select('*'),
           this.supabase.from('coupons').select('*'),
-          this.supabase.from('customers').select('*')
+          this.supabase.from('customers').select('*'),
+          this.supabase.from('profiles').select('*')
         ]);
 
         this.data.restaurants = cloudRestaurants;
@@ -1182,12 +1542,20 @@ class Database {
         if (ordersRes.data) this.data.orders = ordersRes.data;
         if (couponsRes.data) this.data.coupons = couponsRes.data;
         if (customersRes.data) this.data.customers = customersRes.data;
-
+        if (profilesRes.data && profilesRes.data.length > 0) {
+          for (const prof of profilesRes.data) {
+            if (!this.data.users.some(u => u.id === prof.id || u.email.toLowerCase() === prof.email.toLowerCase())) {
+              this.data.users.push(prof);
+            }
+          }
+        }
+        this.data.tombstones = currentTombstones;
+        this.sanitizeData(this.data);
         this.saveData(this.data);
         return {
           success: true,
-          message: `Restored ${cloudRestaurants.length} restaurants and menu items from Supabase tables!`,
-          restoredCount: cloudRestaurants.length
+          message: `Restored ${this.data.restaurants.length} restaurants and menu items from Supabase tables!`,
+          restoredCount: this.data.restaurants.length
         };
       }
     } catch (err: any) {
@@ -1202,6 +1570,7 @@ class Database {
   }
 
   public async deleteCloudRow(tableName: string, rowId: string) {
+    this.recordTombstone(rowId);
     if (!this.supabase || !this.isCloudConfigured) return;
     try {
       await this.supabase.from(tableName).delete().eq('id', rowId);
@@ -1221,7 +1590,7 @@ class Database {
 
   private async autoRestoreFromCloudIfEmpty() {
     try {
-      // Only restore from Supabase if local has zero restaurants or only the default seed and no custom items/users
+      if (this.hasLocalMutations) return;
       const hasCustomLocalData =
         this.data.restaurants.length > 1 ||
         this.data.restaurants.some(r => r.id !== 'rest-urban-bites-1');
@@ -1232,7 +1601,6 @@ class Database {
           console.log(`[Database] Auto-restored ${res.restoredCount} restaurants from Supabase Cloud!`);
         }
       } else {
-        // Local has data, sync it up to Supabase to keep cloud up to date
         await this.syncToSupabase();
       }
     } catch (err) {

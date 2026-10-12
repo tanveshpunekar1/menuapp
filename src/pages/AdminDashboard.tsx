@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { 
-  Restaurant, Subscription, Order, ActivityLog 
+  Restaurant, Subscription, Order, ActivityLog, MenuThemeId, SubscriptionPlan 
 } from '../types';
+import { MENU_THEME_PRESETS, ALL_THEME_IDS, getAllowedThemesForRestaurant, getDefaultAllowedThemesForPlan } from '../lib/themes';
 import { useToast } from '../components/Toast';
 import { 
   LayoutDashboard, Store, ShoppingBag, CreditCard, CalendarCheck, 
@@ -14,9 +15,10 @@ import {
   TrendingUp, ArrowUpRight, Copy, Check, Filter, RefreshCw,
   KeyRound, Lock, X, Database, Timer, Ban, CheckCircle2, Calendar,
   Download, Upload, Cloud, CloudOff, FileJson, ArrowDownCircle, ArrowUpCircle,
-  Trash2
+  Trash2, Palette
 } from 'lucide-react';
 import { isSupabaseConfigured, testSupabaseConnection } from '../lib/supabase';
+import { ThemeStudioPanel } from '../components/ThemeStudioPanel';
 
 interface AdminDashboardProps {
   onNavigate: (path: string) => void;
@@ -26,7 +28,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const { user, logout } = useAuth();
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'users' | 'subscriptions' | 'orders' | 'logs' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'themes' | 'users' | 'subscriptions' | 'orders' | 'logs' | 'settings'>('dashboard');
+  const [selectedThemeRestId, setSelectedThemeRestId] = useState<string>('');
+  const [subDrafts, setSubDrafts] = useState<Record<string, { plan: SubscriptionPlan; price: number; expiry_date: string; payment_status: string; status: string }>>({});
+  const [savingSubId, setSavingSubId] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<any>(null);
   const [restaurants, setRestaurants] = useState<(Restaurant & { subscription: Subscription | null; owner: any; table_count?: number; staff?: any[] })[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -83,6 +88,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const [controlOwnerName, setControlOwnerName] = useState<string>('');
   const [controlOwnerEmail, setControlOwnerEmail] = useState<string>('');
   const [controlOwnerPass, setControlOwnerPass] = useState<string>('');
+  const [controlPlan, setControlPlan] = useState<SubscriptionPlan>('growth');
+  const [controlActiveTheme, setControlActiveTheme] = useState<MenuThemeId>('classic');
+  const [controlAllowedThemes, setControlAllowedThemes] = useState<MenuThemeId[]>(['classic', 'hot_ready', 'premium_cafe', 'modern_app']);
+  const [controlCanCustomizeTheme, setControlCanCustomizeTheme] = useState<boolean>(true);
   const [savingControl, setSavingControl] = useState(false);
 
   // Users & Passwords Tab State
@@ -278,6 +287,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     setControlOwnerName(rest.owner?.name || '');
     setControlOwnerEmail(rest.owner?.email || rest.email || '');
     setControlOwnerPass(rest.owner?.plain_password || '');
+    setControlPlan(rest.plan || 'growth');
+    setControlActiveTheme(rest.active_theme || 'classic');
+    setControlAllowedThemes(getAllowedThemesForRestaurant(rest));
+    setControlCanCustomizeTheme(rest.can_customize_theme !== undefined ? Boolean(rest.can_customize_theme) : rest.plan !== 'starter');
   };
 
   const handleSaveRestaurantControl = async () => {
@@ -291,9 +304,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
         upi_id: controlUpiId,
         owner_name: controlOwnerName,
         owner_email: controlOwnerEmail,
-        owner_password: controlOwnerPass
+        owner_password: controlOwnerPass,
+        plan: controlPlan,
+        active_theme: controlActiveTheme,
+        allowed_themes: controlAllowedThemes.includes('classic')
+          ? controlAllowedThemes
+          : ['classic', ...controlAllowedThemes],
+        can_customize_theme: controlCanCustomizeTheme,
       });
-      showToast(`Updated settings, tables (${controlTableCount}), payment mode, and admin credentials for ${selectedRestForControl.name}!`, 'success');
+      showToast(`Updated settings, themes (${MENU_THEME_PRESETS[controlActiveTheme]?.name}), tables (${controlTableCount}), and credentials for ${selectedRestForControl.name}!`, 'success');
       setSelectedRestForControl(null);
       await loadData();
     } catch (err: any) {
@@ -443,6 +462,139 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     }
   };
 
+  // QUICK ADMIN THEME ACTIVATION & ON/OFF CONTROLS
+  const handleQuickActivateTheme = async (rest: Restaurant, themeId: MenuThemeId) => {
+    try {
+      const currentAllowed = getAllowedThemesForRestaurant(rest);
+      const nextAllowed = currentAllowed.includes(themeId)
+        ? currentAllowed
+        : [...currentAllowed, themeId];
+      await api.updateRestaurantControl(rest.id, {
+        active_theme: themeId,
+        allowed_themes: nextAllowed,
+      });
+      showToast(`Activated "${MENU_THEME_PRESETS[themeId].name}" theme for ${rest.name}!`, 'success');
+      loadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to activate theme', 'error');
+    }
+  };
+
+  const handleQuickToggleThemesMaster = async (rest: Restaurant) => {
+    const currentAllowed = getAllowedThemesForRestaurant(rest);
+    const areAllFiveOn = currentAllowed.length === ALL_THEME_IDS.length && Boolean(rest.can_customize_theme);
+    try {
+      if (areAllFiveOn) {
+        // Keep only the currently active theme enabled
+        const keepTheme: MenuThemeId = rest.active_theme && ALL_THEME_IDS.includes(rest.active_theme) ? rest.active_theme : 'classic';
+        await api.updateRestaurantControl(rest.id, {
+          active_theme: keepTheme,
+          allowed_themes: [keepTheme],
+          can_customize_theme: false,
+        });
+        showToast(`Locked ${rest.name} to 1 theme only (${MENU_THEME_PRESETS[keepTheme].name})`, 'info');
+      } else {
+        // Turn ON all 5 themes + customization
+        await api.updateRestaurantControl(rest.id, {
+          allowed_themes: [...ALL_THEME_IDS],
+          can_customize_theme: true,
+        });
+        showToast(`All 5 Menu Themes & Customization turned ON for ${rest.name}!`, 'success');
+      }
+      loadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to toggle themes ON/OFF', 'error');
+    }
+  };
+
+  const handleQuickToggleSingleThemeUnlock = async (rest: Restaurant, themeId: MenuThemeId) => {
+    const currentAllowed = getAllowedThemesForRestaurant(rest);
+    const isUnlocked = currentAllowed.includes(themeId);
+    if (isUnlocked && currentAllowed.length <= 1) {
+      showToast('At least 1 theme must remain ON for the restaurant. Enable another theme first before turning this one OFF.', 'error');
+      return;
+    }
+    const nextAllowed = isUnlocked
+      ? currentAllowed.filter(t => t !== themeId)
+      : [...currentAllowed, themeId];
+    const nextActive = nextAllowed.includes(rest.active_theme as MenuThemeId)
+      ? rest.active_theme
+      : nextAllowed[0];
+    try {
+      await api.updateRestaurantControl(rest.id, {
+        allowed_themes: nextAllowed,
+        active_theme: nextActive,
+      });
+      showToast(
+        `${MENU_THEME_PRESETS[themeId].name} turned ${isUnlocked ? 'OFF (Locked)' : 'ON (Unlocked)'} for ${rest.name} (${nextAllowed.length}/5 themes ON)`,
+        'success'
+      );
+      loadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to toggle theme access', 'error');
+    }
+  };
+
+  const handleQuickToggleOwnerCustomize = async (rest: Restaurant) => {
+    const nextState = !Boolean(rest.can_customize_theme);
+    try {
+      await api.updateRestaurantControl(rest.id, {
+        can_customize_theme: nextState,
+      });
+      showToast(
+        `Owner Theme Customization turned ${nextState ? 'ON' : 'OFF'} for ${rest.name}`,
+        'success'
+      );
+      loadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update customization permission', 'error');
+    }
+  };
+
+  const handleQuickChangePlan = async (rest: Restaurant, newPlan: SubscriptionPlan) => {
+    const planPrices: Record<SubscriptionPlan, number> = { starter: 999, growth: 1999, pro: 3499, custom: 4999 };
+    try {
+      await api.updateSubscription(`sub-${rest.id}`, {
+        restaurant_id: rest.id,
+        plan: newPlan,
+        price: planPrices[newPlan],
+        allowed_themes: getDefaultAllowedThemesForPlan(newPlan),
+        can_customize_theme: newPlan !== 'starter',
+      });
+      showToast(`Subscription for ${rest.name} updated to ${newPlan.toUpperCase()} Plan!`, 'success');
+      loadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to change subscription plan', 'error');
+    }
+  };
+
+  const handleSaveFullSubscription = async (sub: any) => {
+    const draft = subDrafts[sub.id] || {
+      plan: sub.plan || 'growth',
+      price: sub.price ?? 1999,
+      expiry_date: sub.expiry_date || new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().split('T')[0],
+      payment_status: sub.payment_status || 'paid',
+      status: sub.status || 'active',
+    };
+    try {
+      setSavingSubId(sub.id);
+      await api.updateSubscription(sub.id, {
+        restaurant_id: sub.restaurant_id,
+        plan: draft.plan,
+        price: Number(draft.price),
+        expiry_date: draft.expiry_date,
+        payment_status: draft.payment_status,
+        status: draft.status,
+      });
+      showToast(`Updated subscription (${draft.plan.toUpperCase()}) for ${sub.restaurant_name}!`, 'success');
+      await loadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update subscription', 'error');
+    } finally {
+      setSavingSubId(null);
+    }
+  };
+
   const handleCreateRestaurant = async () => {
     if (formData.owner_password !== formData.confirm_password) {
       showToast('Passwords do not match', 'error');
@@ -535,6 +687,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               activeTab === 'restaurants' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 font-bold'
             }`}>
               {restaurants.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (!selectedThemeRestId && restaurants[0]?.id) {
+                setSelectedThemeRestId(restaurants[0].id);
+              }
+              setActiveTab('themes');
+            }}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+              activeTab === 'themes' ? 'bg-[#ff4d2e] text-white shadow-md shadow-[#ff4d2e]/25 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'
+            }`}
+          >
+            <Palette className="w-4 h-4" />
+            <span>Menu Themes (ON/OFF)</span>
+            <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-black ${
+              activeTab === 'themes' ? 'bg-white/20 text-white' : 'bg-orange-100 text-[#ff4d2e]'
+            }`}>
+              5 Themes
             </span>
           </button>
 
@@ -847,12 +1019,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                   <table className="w-full text-left text-sm text-slate-800">
                     <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold text-slate-500">
                       <tr>
-                        <th className="px-5 py-4">Restaurant</th>
-                        <th className="px-5 py-4">Cafe Admin & Password</th>
-                        <th className="px-5 py-4">Tables Control</th>
-                        <th className="px-5 py-4">Online Payment (QR)</th>
-                        <th className="px-5 py-4">Status</th>
-                        <th className="px-5 py-4 text-right">Master Controls</th>
+                        <th className="px-4 py-4">Restaurant & Subscription</th>
+                        <th className="px-4 py-4">Menu Theme (Activate & ON/OFF)</th>
+                        <th className="px-4 py-4">Cafe Admin & Password</th>
+                        <th className="px-4 py-4">Tables Control</th>
+                        <th className="px-4 py-4">Online Payment (QR)</th>
+                        <th className="px-4 py-4">Status</th>
+                        <th className="px-4 py-4 text-right">Master Controls</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -860,9 +1033,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                         const isOnlineEnabled = r.online_payment_enabled !== false && (r.enabled_payments?.online !== false);
                         const tableCount = r.table_count ?? r.max_tables ?? 2;
                         const ownerPass = r.owner?.plain_password || 'Owner@12345';
+                        const activeThemeId: MenuThemeId = (r.active_theme as MenuThemeId) || 'classic';
+                        const allowedForRest = getAllowedThemesForRestaurant(r);
+                        const areThemesTurnedOn = allowedForRest.length > 1 || Boolean(r.can_customize_theme);
+
                         return (
                           <tr key={r.id} className="hover:bg-slate-50/80 transition">
-                            <td className="px-5 py-4">
+                            <td className="px-4 py-4">
                               <div className="flex items-center gap-3">
                                 <img
                                   src={r.logo || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100'}
@@ -870,19 +1047,113 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                                   className="w-10 h-10 rounded-2xl object-cover border border-slate-200 shrink-0"
                                 />
                                 <div>
-                                  <div className="font-bold text-slate-900 flex items-center gap-2">
-                                    <span>{r.name}</span>
-                                    <span className="uppercase text-[10px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
-                                      {r.plan}
-                                    </span>
+                                  <div className="font-bold text-slate-900">{r.name}</div>
+                                  <div className="text-[11px] text-slate-500 font-mono">/{r.slug}</div>
+                                  {/* Direct Subscription Plan Selector */}
+                                  <div className="mt-1.5 flex items-center gap-1.5">
+                                    <select
+                                      value={r.plan || 'growth'}
+                                      onChange={e => handleQuickChangePlan(r, e.target.value as SubscriptionPlan)}
+                                      className="bg-orange-50 border border-orange-200 text-[#ff4d2e] text-[10px] font-black uppercase px-2 py-1 rounded-lg focus:outline-none cursor-pointer"
+                                      title="Change Restaurant Subscription Plan"
+                                    >
+                                      <option value="starter">Starter Plan (₹999)</option>
+                                      <option value="growth">Growth Plan (₹1,999)</option>
+                                      <option value="pro">Pro Plan (₹3,499)</option>
+                                      <option value="custom">Custom Plan (₹4,999)</option>
+                                    </select>
+                                    <button
+                                      type="button"
+                                      onClick={() => setActiveTab('subscriptions')}
+                                      className="text-[10px] font-bold text-slate-500 hover:text-[#ff4d2e] underline cursor-pointer"
+                                    >
+                                      Billing
+                                    </button>
                                   </div>
-                                  <div className="text-xs text-slate-500 font-mono">/{r.slug}</div>
                                 </div>
                               </div>
                             </td>
 
+                            {/* Direct Menu Theme Activation & 5-Theme ON/OFF Column */}
+                            <td className="px-4 py-4">
+                              <div className="flex flex-col gap-1.5 min-w-[235px]">
+                                <div className="flex items-center justify-between gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuickToggleThemesMaster(r)}
+                                    className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border transition flex items-center gap-1 cursor-pointer ${
+                                      allowedForRest.length === 5
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                        : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                                    }`}
+                                    title="Click to toggle between All 5 Themes ON vs 1 Theme Only"
+                                  >
+                                    <span className={`w-2 h-2 rounded-full ${allowedForRest.length === 5 ? 'bg-emerald-500' : 'bg-orange-500'}`} />
+                                    <span>{allowedForRest.length}/5 Themes ON</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedThemeRestId(r.id);
+                                      setActiveTab('themes');
+                                    }}
+                                    className="px-2 py-1 rounded-lg bg-[#ff4d2e]/10 hover:bg-[#ff4d2e]/20 text-[#ff4d2e] text-[10px] font-black flex items-center gap-1 cursor-pointer"
+                                    title="Open Full Theme Studio & Customize"
+                                  >
+                                    <Palette className="w-3 h-3" />
+                                    <span>Customize</span>
+                                  </button>
+                                </div>
+
+                                {/* 5 Individual Theme ON/OFF Toggle Pills (Select 1 to 5 themes) */}
+                                <div className="flex flex-wrap gap-1">
+                                  {ALL_THEME_IDS.map((tid, idx) => {
+                                    const isOn = allowedForRest.includes(tid);
+                                    const shortLabels: Record<MenuThemeId, string> = {
+                                      classic: '1.Classic',
+                                      hot_ready: '2.Hot&Ready',
+                                      premium_cafe: '3.Cafe',
+                                      modern_app: '4.Modern',
+                                      custom_brand: '5.Custom',
+                                    };
+                                    return (
+                                      <button
+                                        key={tid}
+                                        type="button"
+                                        onClick={() => handleQuickToggleSingleThemeUnlock(r, tid)}
+                                        className={`px-1.5 py-0.5 rounded-md text-[9px] font-black border transition cursor-pointer ${
+                                          isOn
+                                            ? 'bg-emerald-600 text-white border-emerald-600'
+                                            : 'bg-slate-100 text-slate-400 border-slate-200 hover:text-slate-700'
+                                        }`}
+                                        title={`Click to turn ${MENU_THEME_PRESETS[tid].name} ${isOn ? 'OFF' : 'ON'} for ${r.name}`}
+                                      >
+                                        {shortLabels[tid]} {isOn ? '✓' : '✕'}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+
+                                {/* Instant Active Theme Dropdown */}
+                                <select
+                                  value={activeThemeId}
+                                  onChange={e => handleQuickActivateTheme(r, e.target.value as MenuThemeId)}
+                                  className="w-full bg-white border border-slate-200 hover:border-[#ff4d2e] rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-slate-800 focus:outline-none focus:border-[#ff4d2e] cursor-pointer shadow-2xs"
+                                  title="Select and Activate Customer Menu Theme"
+                                >
+                                  {ALL_THEME_IDS.map(tid => (
+                                    <option key={tid} value={tid}>
+                                      {activeThemeId === tid ? '★ Live: ' : allowedForRest.includes(tid) ? '✓ ON: ' : '🔒 OFF (Click to Activate): '}
+                                      {MENU_THEME_PRESETS[tid].name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </td>
+
                             {/* Owner & Password Column */}
-                            <td className="px-5 py-4">
+                            <td className="px-4 py-4">
                               <div className="font-bold text-slate-900 text-xs">{r.owner?.name || 'Cafe Admin'}</div>
                               <div className="text-xs text-slate-600 font-mono">{r.owner?.email || r.email}</div>
                               <div className="mt-1 flex items-center gap-1.5">
@@ -908,7 +1179,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                             </td>
 
                             {/* Tables Count Control */}
-                            <td className="px-5 py-4">
+                            <td className="px-4 py-4">
                               <div className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-xl p-1">
                                 <button
                                   type="button"
@@ -934,7 +1205,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                             </td>
 
                             {/* Online Payment Toggle */}
-                            <td className="px-5 py-4">
+                            <td className="px-4 py-4">
                               <button
                                 type="button"
                                 onClick={() => handleQuickToggleOnlinePayment(r)}
@@ -951,7 +1222,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                             </td>
 
                             {/* Status */}
-                            <td className="px-5 py-4">
+                            <td className="px-4 py-4">
                               <span className={`text-xs font-bold uppercase px-2.5 py-1 rounded-full border ${
                                 r.status === 'active'
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -964,13 +1235,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                             </td>
 
                             {/* Actions */}
-                            <td className="px-5 py-4 text-right">
+                            <td className="px-4 py-4 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <button
                                   type="button"
                                   onClick={() => openControlModal(r)}
                                   className="px-3 py-1.5 rounded-xl bg-[#ff4d2e] hover:bg-[#e03d1e] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition"
-                                  title="Full Control: Passwords, Online Payment, Tables & Staff"
+                                  title="Full Control: Passwords, Themes, Online Payment, Tables & Subscription"
                                 >
                                   <Settings className="w-3.5 h-3.5" />
                                   <span>Control & Passwords</span>
@@ -1034,6 +1305,211 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* DEDICATED SUPER ADMIN MENU THEMES (ACTIVATE & ON/OFF) TAB */}
+          {activeTab === 'themes' && (
+            <div className="space-y-6">
+              <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ff4d2e]/10 text-[#ff4d2e] text-[11px] font-black uppercase tracking-wider mb-2">
+                      <Palette className="w-3.5 h-3.5" />
+                      Master Admin Theme Activation & ON/OFF Control
+                    </span>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                      Restaurant Menu Themes & Customization Control
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium mt-1">
+                      Select any restaurant below to activate its live QR menu theme, turn individual themes ON or OFF, or customize colors & banners.
+                    </p>
+                  </div>
+
+                  {/* Restaurant Selector */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-black text-slate-600 uppercase">Select Restaurant:</label>
+                    <select
+                      value={selectedThemeRestId || restaurants[0]?.id || ''}
+                      onChange={e => setSelectedThemeRestId(e.target.value)}
+                      className="bg-slate-900 text-white font-bold text-xs px-4 py-3 rounded-2xl border border-slate-700 focus:outline-none cursor-pointer"
+                    >
+                      {restaurants.map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.name} ({r.plan?.toUpperCase()} • Active: {MENU_THEME_PRESETS[(r.active_theme as MenuThemeId) || 'classic']?.name})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {(() => {
+                  const targetRest = restaurants.find(r => r.id === (selectedThemeRestId || restaurants[0]?.id)) || restaurants[0];
+                  if (!targetRest) return null;
+
+                  const activeThemeId: MenuThemeId = (targetRest.active_theme as MenuThemeId) || 'classic';
+                  const allowedList = getAllowedThemesForRestaurant(targetRest);
+                  const areThemesOn = allowedList.length > 1 || Boolean(targetRest.can_customize_theme);
+
+                  return (
+                    <div className="mt-6 pt-6 border-t border-slate-100 space-y-6">
+                      {/* Master ON/OFF Controls Bar for Selected Restaurant */}
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={targetRest.logo || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100'}
+                            alt={targetRest.name}
+                            className="w-12 h-12 rounded-2xl object-cover border border-slate-200"
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-black text-base text-slate-900">{targetRest.name}</h3>
+                              <span className="px-2.5 py-0.5 rounded-full bg-orange-100 text-[#ff4d2e] text-[10px] font-black uppercase">
+                                {targetRest.plan} Plan
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500">
+                              Current Live Theme:{' '}
+                              <strong className="text-slate-900">{MENU_THEME_PRESETS[activeThemeId]?.name}</strong>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          {/* Master Themes ON/OFF Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleQuickToggleThemesMaster(targetRest)}
+                            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center gap-2 cursor-pointer shadow-xs ${
+                              areThemesOn
+                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                            }`}
+                          >
+                            <span className={`w-2.5 h-2.5 rounded-full ${areThemesOn ? 'bg-white' : 'bg-slate-500'}`} />
+                            <span>Custom Themes: {areThemesOn ? 'ON (Enabled)' : 'OFF (Classic Only)'}</span>
+                          </button>
+
+                          {/* Owner Customization ON/OFF Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleQuickToggleOwnerCustomize(targetRest)}
+                            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border transition flex items-center gap-2 cursor-pointer ${
+                              targetRest.can_customize_theme
+                                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            <span>Owner Can Edit Theme: {targetRest.can_customize_theme ? 'ON' : 'OFF'}</span>
+                          </button>
+
+                          <a
+                            href={`/menu/${targetRest.slug}/table/1`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5"
+                          >
+                            <span>Open Live QR Menu</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-[#ff4d2e]" />
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* 5 Theme Activation & Individual ON/OFF Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        {ALL_THEME_IDS.map(tid => {
+                          const preset = MENU_THEME_PRESETS[tid];
+                          const isCurrentActive = activeThemeId === tid;
+                          const isUnlocked = allowedList.includes(tid);
+
+                          return (
+                            <div
+                              key={tid}
+                              className={`rounded-2xl p-4 border-2 flex flex-col justify-between transition ${
+                                isCurrentActive
+                                  ? 'border-[#ff4d2e] bg-orange-50/30 shadow-md'
+                                  : isUnlocked
+                                    ? 'border-slate-200 bg-white'
+                                    : 'border-slate-200 bg-slate-50 opacity-75'
+                              }`}
+                            >
+                              <div>
+                                {/* Color Swatches + Individual ON/OFF Switch */}
+                                <div className="flex items-center justify-between gap-2 mb-3">
+                                  <div className="flex items-center -space-x-1.5">
+                                    {[preset.swatches.bg, preset.swatches.primary, preset.swatches.accent].map((hex, i) => (
+                                      <span
+                                        key={i}
+                                        style={{ backgroundColor: hex }}
+                                        className="w-5 h-5 rounded-full border border-white shadow-xs"
+                                      />
+                                    ))}
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuickToggleSingleThemeUnlock(targetRest, tid)}
+                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase border transition cursor-pointer ${
+                                      isUnlocked
+                                        ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
+                                        : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                                    }`}
+                                  >
+                                    {isUnlocked ? '✓ Theme ON' : '✕ Theme OFF'}
+                                  </button>
+                                </div>
+
+                                <h4 className="font-black text-sm text-slate-900">{preset.name}</h4>
+                                <p className="text-[10px] font-bold text-[#ff4d2e] mt-0.5">{preset.referenceStyle}</p>
+                                <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
+                                  {preset.tagline}
+                                </p>
+                              </div>
+
+                              <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuickActivateTheme(targetRest, tid)}
+                                  className={`w-full py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+                                    isCurrentActive
+                                      ? 'bg-emerald-600 text-white shadow-sm'
+                                      : 'bg-[#ff4d2e] hover:bg-[#e03d1e] text-white shadow-sm'
+                                  }`}
+                                >
+                                  {isCurrentActive ? '✓ Active Theme' : 'Activate Theme'}
+                                </button>
+
+                                <a
+                                  href={`/menu/${targetRest.slug}/table/1?preview_theme=${tid}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="w-full py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center justify-center gap-1 transition"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  <span>Preview</span>
+                                </a>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Full Theme Studio Panel for Selected Restaurant */}
+                      <div className="pt-4 border-t border-slate-200">
+                        <ThemeStudioPanel
+                          restaurant={targetRest}
+                          categories={[]}
+                          items={[]}
+                          isAdminOverride={true}
+                          onUpdated={() => {
+                            loadData();
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -1152,60 +1628,160 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">Subscription Plans & Billing Control</h2>
-                <p className="text-xs text-slate-500 font-medium">Authorize payments, renew plans, extend trial or suspend accounts</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  Update or change any restaurant's subscription plan (Starter, Growth, Pro, Custom), billing amount, expiry date, and payment status
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {subscriptions.map(sub => (
-                  <div key={sub.id} className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="uppercase text-xs font-black px-3 py-1 rounded-xl bg-[#ff4d2e]/10 text-[#ff4d2e] border border-[#ff4d2e]/20">
-                          {sub.plan} Plan
-                        </span>
-                        <span className={`text-xs font-bold uppercase px-2.5 py-0.5 rounded-full border ${
-                          sub.payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}>
-                          {sub.payment_status}
-                        </span>
+                {subscriptions.map((sub: any) => {
+                  const planPrices: Record<SubscriptionPlan, number> = { starter: 999, growth: 1999, pro: 3499, custom: 4999 };
+                  const draft = subDrafts[sub.id] || {
+                    plan: (sub.plan || 'growth') as SubscriptionPlan,
+                    price: sub.price ?? planPrices[(sub.plan as SubscriptionPlan) || 'growth'] ?? 1999,
+                    expiry_date: sub.expiry_date || new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().split('T')[0],
+                    payment_status: sub.payment_status || 'paid',
+                    status: sub.status || 'active',
+                  };
+
+                  const updateDraft = (patch: Partial<typeof draft>) => {
+                    setSubDrafts(prev => ({
+                      ...prev,
+                      [sub.id]: { ...draft, ...patch },
+                    }));
+                  };
+
+                  return (
+                    <div key={sub.id} className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="uppercase text-xs font-black px-3 py-1 rounded-xl bg-[#ff4d2e]/10 text-[#ff4d2e] border border-[#ff4d2e]/20">
+                            {draft.plan} Plan
+                          </span>
+                          <span className={`text-xs font-bold uppercase px-2.5 py-0.5 rounded-full border ${
+                            draft.payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            {draft.payment_status}
+                          </span>
+                        </div>
+
+                        <h3 className="font-extrabold text-lg text-slate-900">{sub.restaurant_name}</h3>
+                        <div className="text-2xl font-black text-emerald-600 mt-1 font-mono">₹{draft.price}</div>
+
+                        {/* Interactive Subscription Controls */}
+                        <div className="mt-4 space-y-3 text-xs border-t border-slate-100 pt-4">
+                          <div>
+                            <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
+                              Change Subscription Plan
+                            </label>
+                            <select
+                              value={draft.plan}
+                              onChange={e => {
+                                const nextPlan = e.target.value as SubscriptionPlan;
+                                updateDraft({
+                                  plan: nextPlan,
+                                  price: planPrices[nextPlan] || draft.price,
+                                });
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#ff4d2e] cursor-pointer"
+                            >
+                              <option value="starter">Starter Plan — ₹999 (Classic Theme)</option>
+                              <option value="growth">Growth Plan — ₹1,999 (4 Themes + Customizer)</option>
+                              <option value="pro">Pro Plan — ₹3,499 (All 5 Themes + Full Studio)</option>
+                              <option value="custom">Custom Enterprise — ₹4,999 (White-Label)</option>
+                            </select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
+                                Billing Price (₹)
+                              </label>
+                              <input
+                                type="number"
+                                value={draft.price}
+                                onChange={e => updateDraft({ price: Number(e.target.value) })}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#ff4d2e]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
+                                Payment Status
+                              </label>
+                              <select
+                                value={draft.payment_status}
+                                onChange={e => updateDraft({ payment_status: e.target.value })}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#ff4d2e]"
+                              >
+                                <option value="paid">PAID</option>
+                                <option value="pending">PENDING</option>
+                                <option value="overdue">OVERDUE</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[10px] font-black uppercase text-slate-500">
+                                Expiry Date
+                              </label>
+                              <div className="flex items-center gap-1">
+                                {[
+                                  { label: '+30d', days: 30 },
+                                  { label: '+6m', days: 180 },
+                                  { label: '+1yr', days: 365 },
+                                ].map(btn => (
+                                  <button
+                                    key={btn.label}
+                                    type="button"
+                                    onClick={() => {
+                                      const nextDate = new Date(Date.now() + btn.days * 24 * 3600 * 1000)
+                                        .toISOString()
+                                        .split('T')[0];
+                                      updateDraft({ expiry_date: nextDate, status: 'active' });
+                                    }}
+                                    className="px-1.5 py-0.5 rounded bg-orange-50 hover:bg-orange-100 text-[#ff4d2e] font-bold text-[10px] cursor-pointer"
+                                  >
+                                    {btn.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <input
+                              type="date"
+                              value={draft.expiry_date}
+                              onChange={e => updateDraft({ expiry_date: e.target.value })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#ff4d2e]"
+                            />
+                          </div>
+                        </div>
                       </div>
 
-                      <h3 className="font-extrabold text-lg text-slate-900">{sub.restaurant_name}</h3>
-                      <div className="text-2xl font-black text-emerald-600 mt-2">₹{sub.price}</div>
-                      
-                      <div className="mt-4 space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Start Date:</span>
-                          <span className="font-mono font-bold text-slate-800">{sub.start_date}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Expiry Date:</span>
-                          <span className="font-mono font-bold text-slate-800">{sub.expiry_date}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Method:</span>
-                          <span className="font-semibold text-slate-800">{sub.payment_method}</span>
-                        </div>
-                        {sub.notes && (
-                          <div className="text-[11px] text-slate-400 italic mt-1">Note: {sub.notes}</div>
-                        )}
+                      <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSaveFullSubscription(sub)}
+                          disabled={savingSubId === sub.id}
+                          className="w-full py-2.5 px-4 rounded-2xl bg-[#ff4d2e] hover:bg-[#e03d1e] text-white text-xs font-black uppercase tracking-wider shadow-md shadow-[#ff4d2e]/20 transition cursor-pointer disabled:opacity-50"
+                        >
+                          {savingSubId === sub.id ? 'Updating Subscription...' : 'Update Subscription & Plan'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleUpdatePaymentStatus(sub.id, sub.payment_status)}
+                          className={`w-full py-2 px-3 rounded-xl text-[11px] font-bold transition cursor-pointer ${
+                            sub.payment_status === 'paid'
+                              ? 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                          }`}
+                        >
+                          {sub.payment_status === 'paid' ? 'Mark Awaiting Payment' : 'Quick Confirm Payment (PAID)'}
+                        </button>
                       </div>
                     </div>
-
-                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2">
-                      <button
-                        onClick={() => handleUpdatePaymentStatus(sub.id, sub.payment_status)}
-                        className={`flex-1 py-2.5 px-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
-                          sub.payment_status === 'paid'
-                            ? 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
-                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20'
-                        }`}
-                      >
-                        {sub.payment_status === 'paid' ? 'Mark Awaiting Payment' : 'Confirm Payment (PAID)'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -2085,6 +2661,126 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-800"
                   />
                 </div>
+              </div>
+
+              {/* 3.5 Subscription Plan & Menu Theme Permissions */}
+              <div className="p-4 rounded-2xl bg-orange-50/60 border border-orange-200 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs font-black uppercase text-orange-950">
+                      Subscription Plan & Customer Menu Theme Access
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      Assign subscription tier, active QR menu theme, and which themes this restaurant can use or customize.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Subscription Plan Tier
+                    </label>
+                    <select
+                      value={controlPlan}
+                      onChange={e => {
+                        const nextPlan = e.target.value as SubscriptionPlan;
+                        setControlPlan(nextPlan);
+                        setControlAllowedThemes(getDefaultAllowedThemesForPlan(nextPlan));
+                        setControlCanCustomizeTheme(nextPlan !== 'starter');
+                      }}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                    >
+                      <option value="starter">Starter Plan (Classic Theme Only)</option>
+                      <option value="growth">Growth Plan (4 Professional Themes)</option>
+                      <option value="pro">Pro Plan (All 5 Themes + Custom Brand Studio)</option>
+                      <option value="custom">Custom Enterprise Plan (Full Access)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Active Customer QR Menu Theme
+                    </label>
+                    <select
+                      value={controlActiveTheme}
+                      onChange={e => {
+                        const nextTheme = e.target.value as MenuThemeId;
+                        setControlActiveTheme(nextTheme);
+                        if (!controlAllowedThemes.includes(nextTheme)) {
+                          setControlAllowedThemes(prev => [...prev, nextTheme]);
+                        }
+                      }}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                    >
+                      {ALL_THEME_IDS.map(tid => (
+                        <option key={tid} value={tid}>
+                          {MENU_THEME_PRESETS[tid].name} ({MENU_THEME_PRESETS[tid].referenceStyle})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-[11px] font-bold text-slate-700">
+                      Enabled Themes for this Restaurant (Select 1 to 5 Themes)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setControlAllowedThemes([...ALL_THEME_IDS])}
+                      className="text-[10px] font-black text-[#ff4d2e] hover:underline cursor-pointer"
+                    >
+                      Enable All 5
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {ALL_THEME_IDS.map(tid => {
+                      const checked = controlAllowedThemes.includes(tid);
+                      return (
+                        <label
+                          key={tid}
+                          className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setControlAllowedThemes(prev => Array.from(new Set([...prev, tid])));
+                              } else {
+                                if (controlAllowedThemes.length <= 1) {
+                                  showToast('At least 1 theme must remain enabled', 'error');
+                                  return;
+                                }
+                                const next = controlAllowedThemes.filter(x => x !== tid);
+                                setControlAllowedThemes(next);
+                                if (controlActiveTheme === tid && next.length > 0) {
+                                  setControlActiveTheme(next[0]);
+                                }
+                              }
+                            }}
+                            className="w-4 h-4 accent-[#ff4d2e] rounded"
+                          />
+                          <span className="truncate">{MENU_THEME_PRESETS[tid].name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <label className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 cursor-pointer">
+                  <span className="text-xs font-bold text-slate-800">
+                    Allow Restaurant Owner to Customize Colors, Fonts & Promotional Banners
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={controlCanCustomizeTheme}
+                    onChange={e => setControlCanCustomizeTheme(e.target.checked)}
+                    className="w-4 h-4 accent-[#ff4d2e] rounded"
+                  />
+                </label>
               </div>
 
               {/* 4. Cafe Staff Accounts & Passwords */}

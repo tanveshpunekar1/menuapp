@@ -109,9 +109,6 @@ export const PosOrderList: React.FC<PosOrderListProps> = ({
 
   // Staff deletes order permanently
   const handleDeleteOrder = async (order: Order) => {
-    if (!window.confirm(`Are you sure you want to delete Order #${order.order_number} (Table #${order.table_number})?`)) {
-      return;
-    }
     try {
       setUpdatingOrderId(order.id);
       await api.deleteOrder(order.id, adminRestaurantId);

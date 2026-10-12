@@ -41,9 +41,19 @@ CREATE TABLE IF NOT EXISTS public.restaurants (
   service_expires_at TIMESTAMPTZ,
   is_banned BOOLEAN DEFAULT FALSE,
   ban_reason TEXT,
+  active_theme TEXT DEFAULT 'classic',
+  allowed_themes JSONB DEFAULT '["classic", "hot_ready", "premium_cafe", "modern_app", "custom_brand"]'::jsonb,
+  can_customize_theme BOOLEAN DEFAULT TRUE,
+  theme_config JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Safe migration for existing Supabase projects:
+ALTER TABLE public.restaurants ADD COLUMN IF NOT EXISTS active_theme TEXT DEFAULT 'classic';
+ALTER TABLE public.restaurants ADD COLUMN IF NOT EXISTS allowed_themes JSONB DEFAULT '["classic", "hot_ready", "premium_cafe", "modern_app", "custom_brand"]'::jsonb;
+ALTER TABLE public.restaurants ADD COLUMN IF NOT EXISTS can_customize_theme BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.restaurants ADD COLUMN IF NOT EXISTS theme_config JSONB DEFAULT '{}'::jsonb;
 
 -- 3. PROFILES / USERS TABLE
 CREATE TABLE IF NOT EXISTS public.profiles (

@@ -45,6 +45,48 @@ export interface User {
   created_at: string;
 }
 
+export type MenuThemeId = 'classic' | 'hot_ready' | 'premium_cafe' | 'modern_app' | 'custom_brand';
+
+export interface MenuThemeConfig {
+  // Colors
+  primary_color?: string;
+  secondary_color?: string;
+  background_color?: string;
+  card_color?: string;
+  text_color?: string;
+  accent_color?: string;
+  // Typography & Shapes
+  font_family?: 'Plus Jakarta Sans' | 'Playfair Display' | 'Cormorant Garamond' | 'DM Sans' | 'Space Grotesk';
+  button_style?: 'rounded' | 'pill' | 'sharp';
+  card_style?: 'elevated' | 'bordered' | 'glass' | 'minimal';
+  header_layout?: 'centered' | 'split' | 'minimal' | 'editorial';
+  category_layout?: 'pills' | 'icons' | 'tabs' | 'minimal';
+  banner_style?: 'hero_overlay' | 'split_card' | 'compact_promo' | 'none';
+  image_aspect?: 'square' | 'landscape' | 'portrait';
+  spacing_density?: 'comfortable' | 'compact' | 'spacious';
+  // Promotional Banner & Editorial Section
+  promo_badge?: string;
+  promo_title?: string;
+  promo_subtitle?: string;
+  promo_cta_text?: string;
+  promo_image?: string;
+  editorial_title?: string;
+  editorial_subtitle?: string;
+  // Visibility Toggles
+  show_hero_banner?: boolean;
+  show_promo_section?: boolean;
+  show_bestsellers?: boolean;
+  show_ratings?: boolean;
+  show_prep_time?: boolean;
+  show_dietary_badges?: boolean;
+  show_spicy_indicator?: boolean;
+  show_weight?: boolean;
+  show_search_bar?: boolean;
+  // Per-theme customization storage so all 5 themes retain their own customized settings
+  _theme_id?: MenuThemeId;
+  by_theme?: Partial<Record<MenuThemeId, Partial<MenuThemeConfig>>>;
+}
+
 export interface Restaurant {
   id: string;
   name: string;
@@ -90,6 +132,11 @@ export interface Restaurant {
   service_expires_at?: string; // ISO date string when cafe validity expires
   ban_reason?: string; // Reason if cafe is banned or suspended
   is_banned?: boolean;
+  // Menu Theme & Subscription Customization System
+  active_theme?: MenuThemeId;
+  allowed_themes?: MenuThemeId[];
+  can_customize_theme?: boolean;
+  theme_config?: MenuThemeConfig;
 }
 
 export interface TableServiceRequest {

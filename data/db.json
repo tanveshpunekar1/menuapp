@@ -2,762 +2,819 @@
   "users": [
     {
       "id": "usr-admin-1",
-      "email": "tanveshpunekar296@gmail.com",
       "name": "Tanvesh Punekar (Super Admin)",
       "role": "platform_admin",
+      "email": "tanveshpunekar296@gmail.com",
+      "created_at": "2026-09-28T13:43:33.245Z",
       "password_hash": "$2b$10$a4j3o2utvRa4tXxkhcsK0.5KicmtYgkx77GvloTGNzpLmn4rP/XZS",
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "plain_password": "Admin@12345"
     },
     {
       "id": "usr-owner-1",
-      "email": "owner@urbanbites.com",
       "name": "Vikram Malhotra",
       "role": "restaurant_owner",
-      "restaurant_id": "rest-urban-bites-1",
+      "email": "owner@urbanbites.com",
+      "created_at": "2026-09-28T13:43:33.245Z",
       "password_hash": "$2b$10$uuVdQtH6QZhZHqBYXSPeVepQ2i/5WYte8t92jN8WH9gSPypth5JyS",
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "restaurant_id": "rest-urban-bites-1",
+      "plain_password": "Owner@12345"
     },
     {
       "id": "usr-kitchen-1",
-      "email": "kitchen@urbanbites.com",
       "name": "Chef Rajesh Sharma",
       "role": "kitchen_staff",
-      "restaurant_id": "rest-urban-bites-1",
+      "email": "kitchen@urbanbites.com",
+      "created_at": "2026-09-28T13:43:33.245Z",
       "password_hash": "$2b$10$x3SiADTDeYci4NS0TVrCTePCtUB8iLeiTjz57IZZLph6LUNwUtSBu",
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "restaurant_id": "rest-urban-bites-1",
+      "plain_password": "Kitchen@12345"
     },
     {
       "id": "usr-waiter-1",
-      "email": "waiter@urbanbites.com",
       "name": "Sunil Verma",
       "role": "waiter",
-      "restaurant_id": "rest-urban-bites-1",
+      "email": "waiter@urbanbites.com",
+      "created_at": "2026-09-28T13:43:33.245Z",
       "password_hash": "$2b$10$a9wQfpksyHX3/Ll9eXsWhuaJGLMRpUsSeDl7KUP82DpARhOXRK6ze",
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "restaurant_id": "rest-urban-bites-1",
+      "plain_password": "Waiter@12345"
     },
     {
       "id": "usr-admin-2",
-      "email": "tanveshpunekar123@gmail.com",
       "name": "Tanvesh Punekar (Super Admin)",
       "role": "platform_admin",
+      "email": "tanveshpunekar123@gmail.com",
+      "created_at": "2026-09-29T15:04:50.186Z",
       "password_hash": "$2b$10$RjjJC9IQqXbxevYT73dQyuheYp05CwVAL6Un8vQUvZMbyiiDZLKVm",
-      "created_at": "2026-09-29T15:04:50.186Z"
+      "plain_password": "Admin@12345"
     },
     {
-      "id": "usr-owner-1791208622814",
-      "email": "coso@gmail.com",
-      "name": "coso",
+      "id": "usr-owner-1791792003899",
+      "name": "classll@gmail.com",
       "role": "restaurant_owner",
-      "restaurant_id": "rest-1791208622814",
-      "password_hash": "$2b$10$oqSaMf9C.1ZhlTkuFJuBtufPlbTStiB3g1JRYsnbuiSdDRSuw5vea",
-      "created_at": "2026-10-05T13:57:02.936Z"
+      "email": "classll@gmail.com",
+      "created_at": "2026-10-12T08:00:04.014Z",
+      "password_hash": "$2b$10$kQQzdZPyWLe.PkbiPotADui7ORNbyawZX0A3ZdPC0BNLqrq.AJ4qq",
+      "restaurant_id": "rest-1791792003899",
+      "plain_password": "classll@gmail.com"
     },
     {
-      "id": "usr-staff-1791208834984",
-      "email": "1staf@gmail.com",
-      "name": "1staf@gmail.com",
-      "role": "kitchen_staff",
-      "restaurant_id": "rest-1791208622814",
-      "password_hash": "$2b$10$qp27ToZwBQR.fbtH6FM9uu/sgcGBNkwArS.wgXH3B3fr.ifZ3HRui",
-      "created_at": "2026-10-05T14:00:35.096Z"
-    },
-    {
-      "id": "usr-staff-1791622015966",
-      "email": "tanveshpumekar.cse24@sbjit.edu.in",
-      "name": "Tanvesh Punekar",
+      "id": "usr-staff-1791792113953",
+      "name": "1",
       "role": "waiter",
-      "restaurant_id": "rest-1791208622814",
-      "password_hash": "$2b$10$WqXaWK8gbJowb8Xk.yCOyeWZfrMsR3s6hDbCb545BGELI0Zd2bUFm",
-      "created_at": "2026-10-10T08:46:56.086Z"
+      "email": "1@gmail.com",
+      "created_at": "2026-10-12T08:01:54.060Z",
+      "password_hash": "$2b$10$PU6Ku9/lWHfdBzlgMYl0nO9dp.J4Wv5OyHiLn6PhffsMdLYZukbdm",
+      "restaurant_id": "rest-1791792003899",
+      "plain_password": "1@gmail.com"
     },
     {
-      "id": "usr-owner-1791622728922",
-      "email": "1test@gmail.com",
-      "name": "1test@gmail.com",
-      "role": "restaurant_owner",
-      "restaurant_id": "rest-1791622728922",
-      "password_hash": "$2b$10$IOtwIMbuO3NGu3Jgq.ScmeaMYlkxvKAF3dKjMQasuZi6j2HqIKy.a",
-      "created_at": "2026-10-10T08:58:49.048Z"
-    },
-    {
-      "id": "usr-owner-1791622974897",
-      "email": "2test@gmail.com",
-      "name": "2test@gmail.com",
-      "role": "restaurant_owner",
-      "restaurant_id": "rest-1791622974897",
-      "password_hash": "$2b$10$nJ71aCofzPBpJzn.lpeECOORzAg/jP/pzg2aoMWssP9.CiRSpDzsy",
-      "created_at": "2026-10-10T09:02:55.004Z"
-    },
-    {
-      "id": "usr-owner-1791623203639",
-      "email": "test2@gmail.com",
-      "name": "test2@gmail.com",
-      "role": "restaurant_owner",
-      "restaurant_id": "rest-1791623203639",
-      "password_hash": "$2b$10$Y/0mgQZLzIr3fKH3tZ/R.uVJxGROSrl1CnV6zx2vHxGUVR4mJ5HGq",
-      "created_at": "2026-10-10T09:06:43.761Z"
+      "id": "usr-staff-1791792177631",
+      "name": "2@gmail.com",
+      "role": "kitchen_staff",
+      "email": "2@gmail.com",
+      "created_at": "2026-10-12T08:02:57.737Z",
+      "password_hash": "$2b$10$qHSwMuO9S/sWwS4bhOnR/e/qY6nsMk0y0fhPrWKUi7lqu.zF6Sm6e",
+      "restaurant_id": "rest-1791792003899",
+      "plain_password": "2@gmail.com"
     }
   ],
-  "restaurants": [
+  "orders": [
     {
-      "id": "rest-urban-bites-1",
-      "name": "SuKopi",
-      "slug": "urban-bites-cafe",
-      "logo": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80",
-      "cover_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80",
-      "phone": "+91 98765 43210",
-      "email": "contact@urbanbites.com",
-      "address": "104 Heritage Boulevard, 12th Main, Indiranagar",
-      "city": "Bengaluru",
-      "state": "Karnataka",
-      "pincode": "560038",
-      "description": "Artisan sourdough pizzas, gourmet smashed burgers, and handcrafted coffees served in a vibrant cafe ambience.",
-      "opening_time": "11:00 AM",
-      "closing_time": "11:30 PM",
-      "cuisine_type": "Artisan Coffee & Cafe Bakery",
-      "wifi_info": "UrbanBites_Guest / Coffee2026",
-      "status": "active",
-      "plan": "pro",
-      "owner_id": "usr-owner-1",
-      "enabled_payments": {
-        "online": true,
-        "cash_table": true,
-        "cash_counter": true
-      },
-      "tax_rate": 5,
-      "created_at": "2026-09-28T13:43:33.245Z",
-      "updated_at": "2026-10-05T14:22:23.846Z",
-      "accepting_orders": true,
-      "order_validation_enabled": false,
-      "service_charge_rate": 5,
-      "rating": 4.8,
-      "rating_count": 428,
-      "supported_languages": [
-        "en",
-        "hi",
-        "mr"
+      "id": "ord-1791792522199",
+      "tax": 1.5,
+      "items": [
+        {
+          "id": "oi-water-1791792522199-0j0",
+          "order_id": "ord-1791792522199",
+          "quantity": 1,
+          "created_at": "2026-10-12T08:08:42.199Z",
+          "menu_item_id": "packaged-water-bottle",
+          "customization": "Added via Customer Water Call",
+          "price_snapshot": 30,
+          "item_name_snapshot": "Packaged Water Bottle (1L)"
+        }
       ],
-      "is_banned": false
+      "notes": "Water Bottle Call Request",
+      "total": 31.5,
+      "status": "COMPLETED",
+      "paid_at": "2026-10-12T08:08:45.447Z",
+      "discount": 0,
+      "subtotal": 30,
+      "table_id": "tbl-1791792004015-6",
+      "created_at": "2026-10-12T08:08:42.199Z",
+      "updated_at": "2026-10-12T08:09:49.363Z",
+      "order_number": 1047,
+      "table_number": 6,
+      "customer_name": "Table 6 Guest",
+      "restaurant_id": "rest-1791792003899",
+      "payment_method": "cash_table",
+      "payment_status": "paid",
+      "service_charge": 0
     },
     {
-      "id": "rest-1791208622814",
-      "name": "coso",
-      "slug": "coso",
-      "logo": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80",
-      "cover_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80",
-      "phone": "",
-      "email": "coso@gmail.com",
-      "address": "",
-      "city": "",
-      "state": "",
-      "pincode": "",
-      "description": "cxdfvrgfdg",
-      "opening_time": "10:00 AM",
-      "closing_time": "11:00 PM",
-      "cuisine_type": "Italian Bistro & Cafe",
-      "wifi_info": "GuestWiFi / Resto2026",
-      "status": "active",
-      "plan": "growth",
-      "owner_id": "usr-owner-1791208622814",
-      "enabled_payments": {
-        "online": true,
-        "cash_table": true,
-        "cash_counter": true
-      },
-      "tax_rate": 5,
-      "created_at": "2026-10-05T13:57:02.937Z",
-      "updated_at": "2026-10-10T09:09:15.293Z",
-      "accepting_orders": true,
-      "order_validation_enabled": false,
-      "service_charge_rate": 5,
-      "rating": 4.8,
-      "rating_count": 428,
-      "supported_languages": [
-        "en",
-        "hi",
-        "mr"
+      "id": "ord-1040",
+      "tax": 24.9,
+      "items": [
+        {
+          "id": "oi-1",
+          "order_id": "ord-1040",
+          "quantity": 1,
+          "created_at": "2026-09-28T13:03:33.245Z",
+          "menu_item_id": "item-1",
+          "price_snapshot": 299,
+          "item_name_snapshot": "Paneer Pizza"
+        },
+        {
+          "id": "oi-2",
+          "order_id": "ord-1040",
+          "quantity": 1,
+          "created_at": "2026-09-28T13:03:33.245Z",
+          "menu_item_id": "item-4",
+          "price_snapshot": 249,
+          "item_name_snapshot": "Double Gourmet Smash Burger"
+        }
       ],
-      "pay_counter_only": true,
-      "upi_id": "9975824025@ibl",
-      "upi_payee_name": "",
-      "is_banned": false
-    },
-    {
-      "id": "rest-1791622728922",
-      "name": "1test",
-      "slug": "1test",
-      "logo": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80",
-      "cover_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80",
-      "phone": "",
-      "email": "1test@gmail.com",
-      "address": "",
-      "city": "",
-      "state": "",
-      "pincode": "",
-      "description": "",
-      "opening_time": "10:00 AM",
-      "closing_time": "11:00 PM",
-      "cuisine_type": "Italian Bistro & Cafe",
-      "wifi_info": "GuestWiFi / Resto2026",
-      "status": "active",
-      "plan": "starter",
-      "owner_id": "usr-owner-1791622728922",
-      "enabled_payments": {
-        "online": true,
-        "cash_table": true,
-        "cash_counter": true
-      },
-      "tax_rate": 5,
-      "created_at": "2026-10-10T08:58:49.048Z",
-      "updated_at": "2026-10-10T08:58:49.048Z",
-      "accepting_orders": true,
-      "order_validation_enabled": false,
-      "service_charge_rate": 5,
-      "rating": 4.8,
-      "rating_count": 428,
-      "supported_languages": [
-        "en",
-        "hi",
-        "mr"
-      ]
-    },
-    {
-      "id": "rest-1791622974897",
-      "name": "2test",
-      "slug": "2test",
-      "logo": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80",
-      "cover_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80",
-      "phone": "",
-      "email": "2test@gmail.com",
-      "address": "",
-      "city": "",
-      "state": "",
-      "pincode": "",
-      "description": "",
-      "opening_time": "10:00 AM",
-      "closing_time": "11:00 PM",
-      "cuisine_type": "Italian Bistro & Cafe",
-      "wifi_info": "GuestWiFi / Resto2026",
-      "status": "active",
-      "plan": "pro",
-      "owner_id": "usr-owner-1791622974897",
-      "enabled_payments": {
-        "online": true,
-        "cash_table": true,
-        "cash_counter": true
-      },
-      "tax_rate": 5,
-      "created_at": "2026-10-10T09:02:55.004Z",
-      "updated_at": "2026-10-10T09:02:55.004Z",
-      "accepting_orders": true,
-      "order_validation_enabled": false,
-      "service_charge_rate": 5,
-      "rating": 4.8,
-      "rating_count": 428,
-      "supported_languages": [
-        "en",
-        "hi",
-        "mr"
-      ]
-    },
-    {
-      "id": "rest-1791623203639",
-      "name": "test2",
-      "slug": "test2",
-      "logo": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80",
-      "cover_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80",
-      "phone": "",
-      "email": "test2@gmail.com",
-      "address": "",
-      "city": "",
-      "state": "",
-      "pincode": "",
-      "description": "",
-      "opening_time": "10:00 AM",
-      "closing_time": "11:00 PM",
-      "cuisine_type": "Italian Bistro & Cafe",
-      "wifi_info": "GuestWiFi / Resto2026",
-      "status": "active",
-      "plan": "starter",
-      "owner_id": "usr-owner-1791623203639",
-      "enabled_payments": {
-        "online": true,
-        "cash_table": true,
-        "cash_counter": true
-      },
-      "tax_rate": 5,
-      "created_at": "2026-10-10T09:06:43.761Z",
-      "updated_at": "2026-10-10T09:06:43.761Z",
-      "accepting_orders": true,
-      "order_validation_enabled": false,
-      "service_charge_rate": 5,
-      "rating": 4.8,
-      "rating_count": 428,
-      "supported_languages": [
-        "en",
-        "hi",
-        "mr"
-      ]
-    }
-  ],
-  "subscriptions": [
-    {
-      "id": "sub-1",
+      "total": 522.9,
+      "status": "COMPLETED",
+      "discount": 50,
+      "subtotal": 548,
+      "table_id": "tbl-2",
+      "coupon_id": "cpn-1",
+      "created_at": "2026-09-28T13:03:33.245Z",
+      "updated_at": "2026-09-29T14:45:45.598Z",
+      "coupon_code": "SAVE50",
+      "order_number": 1040,
+      "table_number": 2,
+      "customer_name": "Ananya Roy",
       "restaurant_id": "rest-urban-bites-1",
-      "plan": "pro",
-      "price": 3499,
-      "start_date": "2026-08-29",
-      "expiry_date": "2027-08-29",
-      "status": "active",
-      "payment_status": "paid",
-      "payment_method": "UPI / Razorpay",
-      "payment_reference": "PAY_PRO_99412",
-      "notes": "Annual Pro Subscription confirmed by Platform Admin"
+      "customer_phone": "+91 99887 76655",
+      "payment_method": "online",
+      "payment_status": "paid"
     },
     {
-      "id": "sub-1791208622937",
-      "restaurant_id": "rest-1791208622814",
-      "plan": "growth",
-      "price": 1999,
-      "start_date": "2026-10-05",
-      "expiry_date": "2027-10-05",
-      "status": "active",
-      "payment_status": "paid",
-      "payment_method": "Admin Provisioned",
-      "notes": "Initial subscription generated during creation"
+      "id": "ord-1041",
+      "tax": 39.85,
+      "items": [
+        {
+          "id": "oi-3",
+          "order_id": "ord-1041",
+          "quantity": 2,
+          "created_at": "2026-09-28T13:28:33.245Z",
+          "menu_item_id": "item-3",
+          "customization": "Extra crispy crust",
+          "price_snapshot": 399,
+          "item_name_snapshot": "Classic Pepperoni Pizza"
+        }
+      ],
+      "total": 836.85,
+      "status": "COMPLETED",
+      "discount": 0,
+      "subtotal": 797,
+      "table_id": "tbl-4",
+      "created_at": "2026-09-28T13:28:33.245Z",
+      "updated_at": "2026-09-29T14:46:04.279Z",
+      "order_number": 1041,
+      "table_number": 4,
+      "customer_name": "Rahul Khanna",
+      "restaurant_id": "rest-urban-bites-1",
+      "customer_phone": "+91 98111 22334",
+      "payment_method": "cash_table",
+      "payment_status": "paid"
     },
     {
-      "id": "sub-1791622729048",
-      "restaurant_id": "rest-1791622728922",
-      "plan": "starter",
-      "price": 999,
-      "start_date": "2026-10-10",
-      "expiry_date": "2027-10-10",
-      "status": "active",
-      "payment_status": "paid",
-      "payment_method": "Admin Provisioned",
-      "notes": "Initial subscription generated during creation"
+      "id": "ord-1790603030057",
+      "tax": 24.4,
+      "items": [
+        {
+          "id": "oi-1790603030057-6hi8hz",
+          "order_id": "ord-1790603030057",
+          "quantity": 2,
+          "created_at": "2026-09-28T13:43:50.057Z",
+          "menu_item_id": "item-1",
+          "price_snapshot": 269,
+          "item_name_snapshot": "Paneer Pizza"
+        }
+      ],
+      "total": 512.4,
+      "status": "COMPLETED",
+      "discount": 50,
+      "subtotal": 538,
+      "table_id": "tbl-1",
+      "coupon_id": "cpn-1",
+      "created_at": "2026-09-28T13:43:50.057Z",
+      "updated_at": "2026-09-29T14:46:05.059Z",
+      "coupon_code": "SAVE50",
+      "order_number": 1042,
+      "table_number": 1,
+      "customer_name": "Test Customer",
+      "restaurant_id": "rest-urban-bites-1",
+      "customer_phone": "+91 99999 88888",
+      "payment_method": "cash_table",
+      "payment_status": "paid"
     },
     {
-      "id": "sub-1791622975004",
-      "restaurant_id": "rest-1791622974897",
-      "plan": "pro",
-      "price": 3499,
-      "start_date": "2026-10-10",
-      "expiry_date": "2027-10-10",
-      "status": "active",
+      "id": "ord-1790693100365",
+      "tax": 17.8,
+      "items": [
+        {
+          "id": "oi-1790693100365-gsfxjm",
+          "order_id": "ord-1790693100365",
+          "quantity": 1,
+          "created_at": "2026-09-29T14:45:00.365Z",
+          "menu_item_id": "item-4",
+          "customization": "Size: Triple Monster Stack | Spice: Mild Mayo | Size: Triple Monster Stack | Spice: Mild Mayo",
+          "selected_size": "Triple Monster Stack",
+          "price_snapshot": 339,
+          "item_name_snapshot": "Double Gourmet Smash Burger"
+        }
+      ],
+      "total": 373.75,
+      "status": "COMPLETED",
+      "discount": 0,
+      "subtotal": 339,
+      "table_id": "tbl-1",
+      "created_at": "2026-09-29T14:45:00.365Z",
+      "updated_at": "2026-09-29T14:46:03.197Z",
+      "order_number": 1043,
+      "table_number": 1,
+      "customer_name": "tanvesh punekar",
+      "restaurant_id": "rest-urban-bites-1",
+      "customer_phone": "9975824025",
+      "payment_method": "online",
       "payment_status": "paid",
-      "payment_method": "Admin Provisioned",
-      "notes": "Initial subscription generated during creation"
+      "service_charge": 16.95,
+      "estimated_prep_time": 17
     },
     {
-      "id": "sub-1791623203761",
-      "restaurant_id": "rest-1791623203639",
-      "plan": "starter",
-      "price": 999,
-      "start_date": "2026-10-10",
-      "expiry_date": "2027-10-10",
-      "status": "active",
+      "id": "ord-1791792430489",
+      "tax": 0.05,
+      "items": [
+        {
+          "id": "oi-1791792430489-zzgmp5",
+          "order_id": "ord-1791792430489",
+          "quantity": 1,
+          "created_at": "2026-10-12T08:07:10.489Z",
+          "menu_item_id": "item-1791792057840",
+          "price_snapshot": 1,
+          "item_name_snapshot": "classll@gmail.com"
+        }
+      ],
+      "total": 1.05,
+      "status": "SERVED",
+      "paid_at": "2026-10-12T08:08:23.327Z",
+      "discount": 0,
+      "subtotal": 1,
+      "table_id": "tbl-1791792004015-6",
+      "created_at": "2026-10-12T08:07:10.489Z",
+      "updated_at": "2026-10-12T08:08:23.327Z",
+      "order_number": 1046,
+      "table_number": 6,
+      "restaurant_id": "rest-1791792003899",
+      "payment_method": "cash_table",
       "payment_status": "paid",
-      "payment_method": "Admin Provisioned",
-      "notes": "Initial subscription generated during creation"
+      "service_charge": 0,
+      "estimated_prep_time": 20
+    }
+  ],
+  "tables": [
+    {
+      "id": "tbl-1",
+      "status": "available",
+      "capacity": 2,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "table_number": 1,
+      "restaurant_id": "rest-urban-bites-1"
+    },
+    {
+      "id": "tbl-2",
+      "status": "available",
+      "capacity": 4,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "table_number": 2,
+      "restaurant_id": "rest-urban-bites-1"
+    },
+    {
+      "id": "tbl-3",
+      "status": "available",
+      "capacity": 4,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "table_number": 3,
+      "restaurant_id": "rest-urban-bites-1"
+    },
+    {
+      "id": "tbl-4",
+      "status": "available",
+      "capacity": 6,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "table_number": 4,
+      "restaurant_id": "rest-urban-bites-1"
+    },
+    {
+      "id": "tbl-5",
+      "status": "available",
+      "capacity": 2,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "table_number": 5,
+      "restaurant_id": "rest-urban-bites-1"
+    },
+    {
+      "id": "tbl-1791792004015-1",
+      "status": "available",
+      "capacity": 4,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "table_number": 1,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "tbl-1791792004015-2",
+      "status": "available",
+      "capacity": 2,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "table_number": 2,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "tbl-1791792004015-3",
+      "status": "available",
+      "capacity": 4,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "table_number": 3,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "tbl-1791792004015-4",
+      "status": "available",
+      "capacity": 2,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "table_number": 4,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "tbl-1791792004015-5",
+      "status": "available",
+      "capacity": 4,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "table_number": 5,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "tbl-1791792004015-6",
+      "status": "occupied",
+      "capacity": 2,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "table_number": 6,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "tbl-1791792004015-7",
+      "status": "available",
+      "capacity": 4,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "table_number": 7,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "tbl-1791792004015-8",
+      "status": "available",
+      "capacity": 2,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "table_number": 8,
+      "restaurant_id": "rest-1791792003899"
+    }
+  ],
+  "coupons": [
+    {
+      "id": "cpn-1",
+      "code": "SAVE50",
+      "end_date": "2026-11-27",
+      "is_active": true,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "start_date": "2026-09-18",
+      "used_count": 25,
+      "usage_limit": 1000,
+      "discount_type": "fixed",
+      "restaurant_id": "rest-urban-bites-1",
+      "discount_value": 50,
+      "min_order_amount": 300,
+      "per_customer_limit": 1
+    }
+  ],
+  "customers": [
+    {
+      "id": "cst-1",
+      "name": "Ananya Roy",
+      "email": "ananya@example.com",
+      "phone": "+91 99887 76655",
+      "created_at": "2026-09-13T13:43:33.245Z",
+      "total_spent": 1640,
+      "orders_count": 3,
+      "last_order_at": "2026-09-28T13:03:33.245Z",
+      "restaurant_id": "rest-urban-bites-1",
+      "loyalty_points": 160
+    },
+    {
+      "id": "cst-2",
+      "name": "Rahul Khanna",
+      "phone": "+91 98111 22334",
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "total_spent": 836.85,
+      "orders_count": 1,
+      "last_order_at": "2026-09-28T13:28:33.245Z",
+      "restaurant_id": "rest-urban-bites-1",
+      "loyalty_points": 80
+    },
+    {
+      "id": "cst-1790603030058",
+      "name": "Test Customer",
+      "phone": "+91 99999 88888",
+      "created_at": "2026-09-28T13:43:50.058Z",
+      "total_spent": 512.4,
+      "orders_count": 1,
+      "last_order_at": "2026-09-28T13:43:50.058Z",
+      "restaurant_id": "rest-urban-bites-1",
+      "loyalty_points": 51
+    },
+    {
+      "id": "cst-1790693100365",
+      "name": "tanvesh punekar",
+      "phone": "9975824025",
+      "created_at": "2026-09-29T14:45:00.365Z",
+      "total_spent": 373.75,
+      "orders_count": 1,
+      "last_order_at": "2026-09-29T14:45:00.365Z",
+      "restaurant_id": "rest-urban-bites-1",
+      "loyalty_points": 37
     }
   ],
   "categories": [
     {
       "id": "cat-1",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Artisan Pizzas",
-      "sort_order": 1,
       "is_active": true,
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "sort_order": 1,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-2",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Burgers & Sandwiches",
-      "sort_order": 2,
       "is_active": true,
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "sort_order": 2,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-3",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Appetizers & Starters",
-      "sort_order": 3,
       "is_active": true,
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "sort_order": 3,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-4",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Handcrafted Beverages",
-      "sort_order": 4,
       "is_active": true,
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "sort_order": 4,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-5",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Desserts & Sweets",
-      "sort_order": 5,
       "is_active": true,
-      "created_at": "2026-09-28T13:43:33.245Z"
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "sort_order": 5,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-coffee",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Coffee",
-      "sort_order": 1,
       "is_active": true,
-      "created_at": "2026-10-09T11:00:03.573Z"
+      "created_at": "2026-10-09T11:00:03.573Z",
+      "sort_order": 1,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-non-coffee",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Non Coffee",
-      "sort_order": 2,
       "is_active": true,
-      "created_at": "2026-10-09T11:00:03.573Z"
+      "created_at": "2026-10-09T11:00:03.573Z",
+      "sort_order": 2,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-tea",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Tea",
-      "sort_order": 3,
       "is_active": true,
-      "created_at": "2026-10-09T11:00:03.573Z"
+      "created_at": "2026-10-09T11:00:03.573Z",
+      "sort_order": 3,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-pastries",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Pastries",
-      "sort_order": 4,
       "is_active": true,
-      "created_at": "2026-10-09T11:00:03.573Z"
+      "created_at": "2026-10-09T11:00:03.573Z",
+      "sort_order": 4,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "cat-snacks",
-      "restaurant_id": "rest-urban-bites-1",
       "name": "Snacks",
+      "is_active": true,
+      "created_at": "2026-10-09T11:00:03.573Z",
       "sort_order": 5,
-      "is_active": true,
-      "created_at": "2026-10-09T11:00:03.573Z"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
-      "id": "cat-1791622729048",
-      "restaurant_id": "rest-1791622728922",
+      "id": "cat-1791792004015",
       "name": "Chef Specials",
-      "sort_order": 1,
       "is_active": true,
-      "created_at": "2026-10-10T08:58:49.048Z"
-    },
-    {
-      "id": "cat-1791622975004",
-      "restaurant_id": "rest-1791622974897",
-      "name": "Chef Specials",
+      "created_at": "2026-10-12T08:00:04.015Z",
       "sort_order": 1,
-      "is_active": true,
-      "created_at": "2026-10-10T09:02:55.004Z"
-    },
-    {
-      "id": "cat-1791623203761",
-      "restaurant_id": "rest-1791623203639",
-      "name": "Chef Specials",
-      "sort_order": 1,
-      "is_active": true,
-      "created_at": "2026-10-10T09:06:43.761Z"
+      "restaurant_id": "rest-1791792003899"
     }
   ],
   "menu_items": [
     {
       "id": "item-sukopi-15",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-snacks",
+      "sku": "AF-SN-001",
+      "tag": "Healthy",
       "name": "Avocado Toast",
-      "description": "Crispy whole grain sourdough with mashed ripe Hass avocados, cherry tomatoes, and hemp seeds.",
-      "price": 3.5,
       "image": "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400",
-      "weight": "200g",
+      "price": 3.5,
+      "stock": 22,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "200g",
       "prep_time": 8,
+      "category_id": "cat-snacks",
+      "description": "Crispy whole grain sourdough with mashed ripe Hass avocados, cherry tomatoes, and hemp seeds.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-SN-001",
-      "stock": 22,
-      "tag": "Healthy"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-14",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-tea",
+      "sku": "AF-TE-002",
+      "tag": "Classic",
       "name": "Earl Grey Artisan Tea",
-      "description": "Fragrant black tea infused with natural Italian bergamot citrus essential oil.",
-      "price": 2.2,
       "image": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400",
-      "weight": "350ml",
+      "price": 2.2,
+      "stock": 32,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "350ml",
       "prep_time": 4,
+      "category_id": "cat-tea",
+      "description": "Fragrant black tea infused with natural Italian bergamot citrus essential oil.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": false,
-      "sku": "AF-TE-002",
-      "stock": 32,
-      "tag": "Classic"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-13",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-tea",
+      "sku": "AF-TE-001",
+      "tag": "Organic",
       "name": "Matcha Green Tea",
-      "description": "Premium ceremonial Japanese Uji matcha whisked with oat milk and subtle organic agave.",
-      "price": 2.8,
       "image": "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400",
-      "weight": "300ml",
+      "price": 2.8,
+      "stock": 28,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "300ml",
       "prep_time": 5,
+      "category_id": "cat-tea",
+      "description": "Premium ceremonial Japanese Uji matcha whisked with oat milk and subtle organic agave.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-TE-001",
-      "stock": 28,
-      "tag": "Organic"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-12",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-pastries",
+      "sku": "AF-PS-002",
+      "tag": "NEW",
       "name": "Chocolate Muffin",
-      "description": "Decadent double fudge chocolate muffin studded with melted dark chocolate chips.",
-      "price": 2.75,
       "image": "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=400",
-      "weight": "120g",
+      "price": 2.75,
+      "stock": 18,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "120g",
       "prep_time": 2,
+      "category_id": "cat-pastries",
+      "description": "Decadent double fudge chocolate muffin studded with melted dark chocolate chips.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": false,
-      "sku": "AF-PS-002",
-      "stock": 18,
-      "tag": "NEW"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-11",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-pastries",
+      "sku": "AF-PS-001",
+      "tag": "Fresh Baked",
       "name": "Butter Croissant",
-      "description": "Freshly baked flaky French pastry with golden crispy exterior and tender buttery layers.",
-      "price": 3.21,
       "image": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400",
-      "weight": "90g",
+      "price": 3.21,
+      "stock": 35,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "90g",
       "prep_time": 2,
+      "category_id": "cat-pastries",
+      "description": "Freshly baked flaky French pastry with golden crispy exterior and tender buttery layers.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-PS-001",
-      "stock": 35,
-      "tag": "Fresh Baked"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-10",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-010",
+      "tag": "Specialty",
       "name": "Affogato",
-      "description": "A scoop of creamy artisanal Madagascar vanilla bean gelato drowned in a piping hot espresso shot.",
-      "price": 2.5,
       "image": "https://images.unsplash.com/photo-1594488518055-668b0c44c5ff?w=400",
-      "weight": "150ml",
+      "price": 2.5,
+      "stock": 40,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "150ml",
       "prep_time": 4,
+      "category_id": "cat-coffee",
+      "description": "A scoop of creamy artisanal Madagascar vanilla bean gelato drowned in a piping hot espresso shot.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": false,
-      "sku": "AF-CF-010",
-      "stock": 40,
-      "tag": "Specialty"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-9",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-non-coffee",
+      "sku": "AF-CF-018",
+      "tag": "Refreshing",
       "name": "Americano + Orange",
-      "description": "Refreshing layered iced Americano infused with freshly squeezed sweet valencia orange juice.",
-      "price": 2.4,
       "image": "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=400",
-      "weight": "350ml",
+      "price": 2.4,
+      "stock": 45,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "350ml",
       "prep_time": 5,
+      "category_id": "cat-non-coffee",
+      "description": "Refreshing layered iced Americano infused with freshly squeezed sweet valencia orange juice.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-CF-018",
-      "stock": 45,
-      "tag": "Refreshing"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-8",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-017",
+      "tag": "Smooth",
       "name": "Flat White",
-      "description": "Micro-foamed steamed whole milk poured over a rich double ristretto.",
-      "price": 2.4,
       "image": "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=400",
-      "weight": "200ml",
+      "price": 2.4,
+      "stock": 24,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "200ml",
       "prep_time": 5,
+      "category_id": "cat-coffee",
+      "description": "Micro-foamed steamed whole milk poured over a rich double ristretto.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-CF-017",
-      "stock": 24,
-      "tag": "Smooth"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-7",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-016",
+      "tag": "Layered",
       "name": "Macchiato",
-      "description": "Bold espresso marked with a delicate dollop of warm textured foam.",
-      "price": 2.2,
       "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      "weight": "60ml",
+      "price": 2.2,
+      "stock": 42,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "60ml",
       "prep_time": 4,
+      "category_id": "cat-coffee",
+      "description": "Bold espresso marked with a delicate dollop of warm textured foam.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": false,
-      "sku": "AF-CF-016",
-      "stock": 42,
-      "tag": "Layered"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-6",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-014",
+      "tag": "Concentrated",
       "name": "Espresso",
-      "description": "Intense concentrated single shot pulled under high pressure with caramel crema.",
-      "price": 1.67,
       "image": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400",
-      "weight": "45ml",
+      "price": 1.67,
+      "stock": 61,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "45ml",
       "prep_time": 3,
+      "category_id": "cat-coffee",
+      "description": "Intense concentrated single shot pulled under high pressure with caramel crema.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": false,
-      "sku": "AF-CF-014",
-      "stock": 61,
-      "tag": "Concentrated"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-5",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-015",
+      "tag": "Choco Delight",
       "name": "Mocha",
-      "description": "Dark Belgian chocolate syrup blended with fresh espresso and steamed milk, topped with cocoa.",
-      "price": 2.15,
       "image": "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=400",
-      "weight": "300ml",
+      "price": 2.15,
+      "stock": 87,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "300ml",
       "prep_time": 6,
+      "category_id": "cat-coffee",
+      "description": "Dark Belgian chocolate syrup blended with fresh espresso and steamed milk, topped with cocoa.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-CF-015",
-      "stock": 87,
-      "tag": "Choco Delight"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-4",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-013",
+      "tag": "Milky",
       "name": "Latte",
-      "description": "Silky smooth classic cafe latte with roasted Arabica beans and textured milk.",
-      "price": 2,
       "image": "https://images.unsplash.com/photo-1534778101976-62847782c213?w=400",
-      "weight": "280ml",
+      "price": 2,
+      "stock": 23,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "280ml",
       "prep_time": 5,
+      "category_id": "cat-coffee",
+      "description": "Silky smooth classic cafe latte with roasted Arabica beans and textured milk.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-CF-013",
-      "stock": 23,
-      "tag": "Milky"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-3",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-011",
+      "tag": "Classic",
       "name": "Americano",
-      "description": "Freshly extracted espresso topped with hot purified water for a clean, bold coffee profile.",
-      "price": 1.87,
       "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400",
-      "weight": "250ml",
+      "price": 1.87,
+      "stock": 12,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "250ml",
       "prep_time": 4,
+      "category_id": "cat-coffee",
+      "description": "Freshly extracted espresso topped with hot purified water for a clean, bold coffee profile.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": false,
-      "sku": "AF-CF-011",
-      "stock": 12,
-      "tag": "Classic"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-2",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-013",
+      "tag": "Milky",
       "name": "Caffe Latte",
-      "description": "Rich espresso poured into velvety steamed whole milk with a light layer of foam art.",
-      "price": 2.35,
       "image": "https://images.unsplash.com/photo-1561047029-3000c68339ca?w=400",
-      "weight": "300ml",
+      "price": 2.35,
+      "stock": 72,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "300ml",
       "prep_time": 5,
+      "category_id": "cat-coffee",
+      "description": "Rich espresso poured into velvety steamed whole milk with a light layer of foam art.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-CF-013",
-      "stock": 72,
-      "tag": "Milky"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "item-sukopi-1",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-coffee",
+      "sku": "AF-CF-012",
+      "tag": "Signature",
       "name": "Cappuccino",
-      "description": "Double shot espresso balanced with steamed milk and dense silky milk foam.",
-      "price": 2.15,
-      "discount_price": 1.5,
       "image": "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400",
-      "weight": "240ml",
+      "price": 2.15,
+      "stock": 53,
       "is_veg": true,
-      "spicy_level": 0,
+      "weight": "240ml",
       "prep_time": 5,
+      "category_id": "cat-coffee",
+      "description": "Double shot espresso balanced with steamed milk and dense silky milk foam.",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "sku": "AF-CF-012",
-      "stock": 53,
-      "tag": "Signature"
+      "restaurant_id": "rest-urban-bites-1",
+      "discount_price": 1.5
     },
     {
       "id": "item-1",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-1",
+      "sku": "SKU-025",
       "name": "Paneer Pizza",
-      "description": "Tender marinated cottage cheese cubes, bell peppers, fresh mozzarella, and aromatic basil on stone-baked sourdough.",
-      "price": 299,
-      "discount_price": 269,
       "image": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&auto=format&fit=crop&q=80",
-      "weight": "350g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": true,
-      "created_at": "2026-09-28T13:43:33.245Z",
-      "updated_at": "2026-09-28T13:43:33.245Z",
+      "price": 299,
       "sizes": [
         {
           "name": "Regular (8\")",
@@ -772,6 +829,9 @@
           "price_delta": 150
         }
       ],
+      "stock": 40,
+      "is_veg": true,
+      "weight": "350g",
       "add_ons": [
         {
           "id": "addon-p1",
@@ -794,31 +854,29 @@
           "price": 40
         }
       ],
+      "prep_time": 15,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "updated_at": "2026-09-28T13:43:33.245Z",
+      "category_id": "cat-1",
+      "description": "Tender marinated cottage cheese cubes, bell peppers, fresh mozzarella, and aromatic basil on stone-baked sourdough.",
+      "spicy_level": 1,
+      "is_available": true,
+      "is_bestseller": true,
+      "restaurant_id": "rest-urban-bites-1",
       "spice_options": [
         "Mild",
         "Medium Spicy",
         "Fiery Hot"
       ],
-      "is_recommended": true,
-      "sku": "SKU-025",
-      "stock": 40
+      "discount_price": 269,
+      "is_recommended": true
     },
     {
       "id": "item-2",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-1",
+      "sku": "SKU-026",
       "name": "Truffle Wild Mushroom Pizza",
-      "description": "Shiitake and cremini forest mushrooms, garlic oil, creamy fior di latte, and parmesan shavings.",
-      "price": 349,
       "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
-      "weight": "380g",
-      "is_veg": true,
-      "spicy_level": 0,
-      "prep_time": 18,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-09-28T13:43:33.245Z",
-      "updated_at": "2026-09-28T13:43:33.245Z",
+      "price": 349,
       "sizes": [
         {
           "name": "Regular (8\")",
@@ -833,6 +891,9 @@
           "price_delta": 170
         }
       ],
+      "stock": 40,
+      "is_veg": true,
+      "weight": "380g",
       "add_ons": [
         {
           "id": "addon-tm1",
@@ -845,30 +906,27 @@
           "price": 45
         }
       ],
+      "prep_time": 18,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "updated_at": "2026-09-28T13:43:33.245Z",
+      "category_id": "cat-1",
+      "description": "Shiitake and cremini forest mushrooms, garlic oil, creamy fior di latte, and parmesan shavings.",
+      "spicy_level": 0,
+      "is_available": true,
+      "is_bestseller": false,
+      "restaurant_id": "rest-urban-bites-1",
       "spice_options": [
         "Herbed (No Spice)",
         "Mild Chili Flakes"
       ],
-      "is_recommended": true,
-      "sku": "SKU-026",
-      "stock": 40
+      "is_recommended": true
     },
     {
       "id": "item-3",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-1",
+      "sku": "SKU-027",
       "name": "Classic Pepperoni Pizza",
-      "description": "Crisp smoked cured pepperoni slices, San Marzano tomato reduction, stringy mozzarella cheese.",
-      "price": 399,
       "image": "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&auto=format&fit=crop&q=80",
-      "weight": "400g",
-      "is_veg": false,
-      "spicy_level": 2,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": true,
-      "created_at": "2026-09-28T13:43:33.245Z",
-      "updated_at": "2026-09-28T13:43:33.245Z",
+      "price": 399,
       "sizes": [
         {
           "name": "Regular (8\")",
@@ -883,6 +941,9 @@
           "price_delta": 180
         }
       ],
+      "stock": 40,
+      "is_veg": false,
+      "weight": "400g",
       "add_ons": [
         {
           "id": "addon-pep1",
@@ -900,30 +961,27 @@
           "price": 30
         }
       ],
+      "prep_time": 15,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "updated_at": "2026-09-28T13:43:33.245Z",
+      "category_id": "cat-1",
+      "description": "Crisp smoked cured pepperoni slices, San Marzano tomato reduction, stringy mozzarella cheese.",
+      "spicy_level": 2,
+      "is_available": true,
+      "is_bestseller": true,
+      "restaurant_id": "rest-urban-bites-1",
       "spice_options": [
         "Standard Spice",
         "Smoky Fiery"
       ],
-      "is_recommended": true,
-      "sku": "SKU-027",
-      "stock": 40
+      "is_recommended": true
     },
     {
       "id": "item-4",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-2",
+      "sku": "SKU-028",
       "name": "Double Gourmet Smash Burger",
-      "description": "Two crispy smashed ground beef patties, melted aged cheddar, caramelized shallots, house burger sauce in toasted brioche.",
-      "price": 249,
       "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80",
-      "weight": "320g",
-      "is_veg": false,
-      "spicy_level": 1,
-      "prep_time": 12,
-      "is_available": true,
-      "is_bestseller": true,
-      "created_at": "2026-09-28T13:43:33.245Z",
-      "updated_at": "2026-09-28T13:43:33.245Z",
+      "price": 249,
       "sizes": [
         {
           "name": "Single Patty",
@@ -938,6 +996,9 @@
           "price_delta": 90
         }
       ],
+      "stock": 40,
+      "is_veg": false,
+      "weight": "320g",
       "add_ons": [
         {
           "id": "addon-b1",
@@ -960,31 +1021,28 @@
           "price": 35
         }
       ],
+      "prep_time": 12,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "updated_at": "2026-09-28T13:43:33.245Z",
+      "category_id": "cat-2",
+      "description": "Two crispy smashed ground beef patties, melted aged cheddar, caramelized shallots, house burger sauce in toasted brioche.",
+      "spicy_level": 1,
+      "is_available": true,
+      "is_bestseller": true,
+      "restaurant_id": "rest-urban-bites-1",
       "spice_options": [
         "Mild Mayo",
         "Spicy Chipotle",
         "Ghost Pepper"
       ],
-      "is_recommended": true,
-      "sku": "SKU-028",
-      "stock": 40
+      "is_recommended": true
     },
     {
       "id": "item-5",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-3",
+      "sku": "SKU-029",
       "name": "Crispy Peri-Peri Fries",
-      "description": "Golden skin-on hand-cut potatoes tossed in spicy African bird eye chili seasoning and served with garlic mayo.",
-      "price": 149,
       "image": "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600&auto=format&fit=crop&q=80",
-      "weight": "200g",
-      "is_veg": true,
-      "spicy_level": 2,
-      "prep_time": 8,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-09-28T13:43:33.245Z",
-      "updated_at": "2026-09-28T13:43:33.245Z",
+      "price": 149,
       "sizes": [
         {
           "name": "Regular Basket",
@@ -995,6 +1053,9 @@
           "price_delta": 60
         }
       ],
+      "stock": 40,
+      "is_veg": true,
+      "weight": "200g",
       "add_ons": [
         {
           "id": "addon-f1",
@@ -1012,31 +1073,28 @@
           "price": 25
         }
       ],
+      "prep_time": 8,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "updated_at": "2026-09-28T13:43:33.245Z",
+      "category_id": "cat-3",
+      "description": "Golden skin-on hand-cut potatoes tossed in spicy African bird eye chili seasoning and served with garlic mayo.",
+      "spicy_level": 2,
+      "is_available": true,
+      "is_bestseller": false,
+      "restaurant_id": "rest-urban-bites-1",
       "spice_options": [
         "Low Spice",
         "Zesty Peri-Peri",
         "Extra Tangy"
       ],
-      "is_recommended": true,
-      "sku": "SKU-029",
-      "stock": 40
+      "is_recommended": true
     },
     {
       "id": "item-6",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-4",
+      "sku": "SKU-030",
       "name": "Signature Cold Brew Float",
-      "description": "Steeped single-origin Arabica over ice topped with rich creamy Tahitian vanilla bean gelato.",
-      "price": 189,
       "image": "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=600&auto=format&fit=crop&q=80",
-      "weight": "350ml",
-      "is_veg": true,
-      "spicy_level": 0,
-      "prep_time": 5,
-      "is_available": true,
-      "is_bestseller": true,
-      "created_at": "2026-09-28T13:43:33.245Z",
-      "updated_at": "2026-09-28T13:43:33.245Z",
+      "price": 189,
       "sizes": [
         {
           "name": "Regular (350ml)",
@@ -1047,6 +1105,9 @@
           "price_delta": 50
         }
       ],
+      "stock": 40,
+      "is_veg": true,
+      "weight": "350ml",
       "add_ons": [
         {
           "id": "addon-cb1",
@@ -1064,30 +1125,27 @@
           "price": 35
         }
       ],
+      "prep_time": 5,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "updated_at": "2026-09-28T13:43:33.245Z",
+      "category_id": "cat-4",
+      "description": "Steeped single-origin Arabica over ice topped with rich creamy Tahitian vanilla bean gelato.",
+      "spicy_level": 0,
+      "is_available": true,
+      "is_bestseller": true,
+      "restaurant_id": "rest-urban-bites-1",
       "spice_options": [
         "Sweet",
         "Unsweetened / Keto"
       ],
-      "is_recommended": true,
-      "sku": "SKU-030",
-      "stock": 40
+      "is_recommended": true
     },
     {
       "id": "item-7",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-5",
+      "sku": "SKU-031",
       "name": "Sizzling Walnut Brownie with Ice Cream",
-      "description": "Dense dark Belgian chocolate fudge brownie served sizzling with vanilla scoop and warm melted chocolate drizzle.",
-      "price": 199,
       "image": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format&fit=crop&q=80",
-      "weight": "220g",
-      "is_veg": true,
-      "spicy_level": 0,
-      "prep_time": 10,
-      "is_available": true,
-      "is_bestseller": true,
-      "created_at": "2026-09-28T13:43:33.245Z",
-      "updated_at": "2026-09-28T13:43:33.245Z",
+      "price": 199,
       "sizes": [
         {
           "name": "Single Serving",
@@ -1098,6 +1156,9 @@
           "price_delta": 90
         }
       ],
+      "stock": 40,
+      "is_veg": true,
+      "weight": "220g",
       "add_ons": [
         {
           "id": "addon-br1",
@@ -1115,25 +1176,26 @@
           "price": 35
         }
       ],
-      "is_recommended": true,
-      "sku": "SKU-031",
-      "stock": 40
+      "prep_time": 10,
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "updated_at": "2026-09-28T13:43:33.245Z",
+      "category_id": "cat-5",
+      "description": "Dense dark Belgian chocolate fudge brownie served sizzling with vanilla scoop and warm melted chocolate drizzle.",
+      "spicy_level": 0,
+      "is_available": true,
+      "is_bestseller": true,
+      "restaurant_id": "rest-urban-bites-1",
+      "is_recommended": true
     },
     {
       "id": "item-8",
-      "restaurant_id": "rest-urban-bites-1",
-      "category_id": "cat-3",
+      "sku": "SKU-032",
       "name": "Garlic Parmesan Herb Dough-Balls",
-      "description": "Warm fluffy sourdough balls glazed with roasted garlic rosemary herb butter and served with marinara dip.",
-      "price": 169,
       "image": "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=600&auto=format&fit=crop&q=80",
-      "weight": "180g",
+      "price": 169,
+      "stock": 40,
       "is_veg": true,
-      "spicy_level": 0,
-      "prep_time": 10,
-      "is_available": true,
-      "is_bestseller": false,
-      "is_recommended": false,
+      "weight": "180g",
       "add_ons": [
         {
           "id": "addon-gb1",
@@ -1146,876 +1208,460 @@
           "price": 45
         }
       ],
+      "prep_time": 10,
       "created_at": "2026-09-29T14:44:55.357Z",
       "updated_at": "2026-09-29T14:44:55.357Z",
-      "sku": "SKU-032",
-      "stock": 40
+      "category_id": "cat-3",
+      "description": "Warm fluffy sourdough balls glazed with roasted garlic rosemary herb butter and served with marinara dip.",
+      "spicy_level": 0,
+      "is_available": true,
+      "is_bestseller": false,
+      "restaurant_id": "rest-urban-bites-1",
+      "is_recommended": false
     },
     {
-      "id": "item-1791208622937",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208622937",
-      "name": "coso Signature Dish",
-      "description": "House specialty crafted with fresh local ingredients and signature seasonings.",
-      "price": 249,
+      "id": "item-1791792004015",
+      "name": "classll@gmail.com Signature Dish",
       "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
-      "weight": "300g",
+      "price": 249,
       "is_veg": true,
-      "spicy_level": 1,
+      "weight": "300g",
       "prep_time": 15,
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "updated_at": "2026-10-12T08:00:04.015Z",
+      "category_id": "cat-1791792004015",
+      "description": "House specialty crafted with fresh local ingredients and signature seasonings.",
+      "spicy_level": 1,
       "is_available": true,
       "is_bestseller": true,
-      "created_at": "2026-10-05T13:57:02.937Z",
-      "updated_at": "2026-10-05T13:57:02.937Z",
-      "sku": "SKU-033",
-      "stock": 40
+      "restaurant_id": "rest-1791792003899"
     },
     {
-      "id": "item-1791208827844",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cheese pizza",
-      "price": 17990,
-      "image": "/api/uploads/item-item-1791208827844-9.jpg",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:00:27.844Z",
-      "updated_at": "2026-10-05T14:00:27.844Z",
-      "sku": "SKU-034",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208853215",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cheese pizza",
-      "price": 17990,
-      "image": "/api/uploads/item-item-1791208853215-10.jpg",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:00:53.215Z",
-      "updated_at": "2026-10-05T14:00:53.215Z",
-      "sku": "SKU-035",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208883524",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cheese pizza",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208883524-11.jpg",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:01:23.524Z",
-      "updated_at": "2026-10-05T14:01:23.524Z",
-      "sku": "SKU-036",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208913854",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cheese pizza",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208913854-12.jpg",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:01:53.854Z",
-      "updated_at": "2026-10-05T14:01:53.854Z",
-      "sku": "SKU-037",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208914401",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cheese pizza",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208914401-13.jpg",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:01:54.401Z",
-      "updated_at": "2026-10-05T14:01:54.402Z",
-      "sku": "SKU-038",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208915111",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cheese pizza",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208915111-14.jpg",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:01:55.111Z",
-      "updated_at": "2026-10-05T14:01:55.112Z",
-      "sku": "SKU-039",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208916013",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cheese pizza",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208916013-15.jpg",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:01:56.013Z",
-      "updated_at": "2026-10-05T14:01:56.013Z",
-      "sku": "SKU-040",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208960496",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cewdfre redgfvrfgr ",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208960496-16.jpg",
-      "weight": "300g",
-      "is_veg": false,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:02:40.496Z",
-      "updated_at": "2026-10-05T14:02:40.496Z",
-      "sku": "SKU-041",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208960784",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cewdfre redgfvrfgr ",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208960784-17.jpg",
-      "weight": "300g",
-      "is_veg": false,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:02:40.784Z",
-      "updated_at": "2026-10-05T14:02:40.784Z",
-      "sku": "SKU-042",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208961137",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cewdfre redgfvrfgr ",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208961137-18.jpg",
-      "weight": "300g",
-      "is_veg": false,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:02:41.137Z",
-      "updated_at": "2026-10-05T14:02:41.137Z",
-      "sku": "SKU-043",
-      "stock": 40
-    },
-    {
-      "id": "item-1791208961496",
-      "restaurant_id": "rest-1791208622814",
-      "category_id": "cat-1791208752882",
-      "name": "pizza mastana",
-      "description": "cewdfre redgfvrfgr ",
-      "price": 17990,
-      "discount_price": 22,
-      "image": "/api/uploads/item-item-1791208961496-19.jpg",
-      "weight": "300g",
-      "is_veg": false,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": false,
-      "created_at": "2026-10-05T14:02:41.496Z",
-      "updated_at": "2026-10-05T14:02:41.496Z",
-      "sku": "SKU-044",
-      "stock": 40
-    },
-    {
-      "id": "item-1791622729048",
-      "restaurant_id": "rest-1791622728922",
-      "category_id": "cat-1791622729048",
-      "name": "1test Signature Dish",
-      "description": "House specialty crafted with fresh local ingredients and signature seasonings.",
-      "price": 249,
+      "id": "item-1791792057840",
+      "name": "classll@gmail.com",
       "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
-      "weight": "300g",
+      "price": 1,
       "is_veg": true,
-      "spicy_level": 1,
+      "weight": "300g",
       "prep_time": 15,
+      "created_at": "2026-10-12T08:00:57.840Z",
+      "updated_at": "2026-10-12T08:00:57.840Z",
+      "category_id": "cat-1791792004015",
+      "description": "classll@gmail.com",
+      "spicy_level": 0,
       "is_available": true,
       "is_bestseller": true,
-      "created_at": "2026-10-10T08:58:49.048Z",
-      "updated_at": "2026-10-10T08:58:49.048Z"
-    },
-    {
-      "id": "item-1791622975004",
-      "restaurant_id": "rest-1791622974897",
-      "category_id": "cat-1791622975004",
-      "name": "2test Signature Dish",
-      "description": "House specialty crafted with fresh local ingredients and signature seasonings.",
-      "price": 249,
-      "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": true,
-      "created_at": "2026-10-10T09:02:55.004Z",
-      "updated_at": "2026-10-10T09:02:55.004Z"
-    },
-    {
-      "id": "item-1791623203761",
-      "restaurant_id": "rest-1791623203639",
-      "category_id": "cat-1791623203761",
-      "name": "test2 Signature Dish",
-      "description": "House specialty crafted with fresh local ingredients and signature seasonings.",
-      "price": 249,
-      "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
-      "weight": "300g",
-      "is_veg": true,
-      "spicy_level": 1,
-      "prep_time": 15,
-      "is_available": true,
-      "is_bestseller": true,
-      "created_at": "2026-10-10T09:06:43.761Z",
-      "updated_at": "2026-10-10T09:06:43.761Z"
+      "restaurant_id": "rest-1791792003899"
     }
   ],
-  "tables": [
+  "tombstones": [],
+  "order_items": [
     {
-      "id": "tbl-1",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 1,
-      "capacity": 2,
-      "status": "available",
-      "created_at": "2026-09-28T13:43:33.245Z"
-    },
-    {
-      "id": "tbl-2",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 2,
-      "capacity": 4,
-      "status": "available",
-      "created_at": "2026-09-28T13:43:33.245Z"
-    },
-    {
-      "id": "tbl-3",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 3,
-      "capacity": 4,
-      "status": "available",
-      "created_at": "2026-09-28T13:43:33.245Z"
-    },
-    {
-      "id": "tbl-4",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 4,
-      "capacity": 6,
-      "status": "available",
-      "created_at": "2026-09-28T13:43:33.245Z"
-    },
-    {
-      "id": "tbl-5",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 5,
-      "capacity": 2,
-      "status": "available",
-      "created_at": "2026-09-28T13:43:33.245Z"
-    },
-    {
-      "id": "tbl-1791208622937-1",
-      "restaurant_id": "rest-1791208622814",
-      "table_number": 1,
-      "capacity": 2,
-      "status": "occupied",
-      "created_at": "2026-10-05T13:57:02.937Z"
-    },
-    {
-      "id": "tbl-1791208622937-2",
-      "restaurant_id": "rest-1791208622814",
-      "table_number": 2,
-      "capacity": 4,
-      "status": "available",
-      "created_at": "2026-10-05T13:57:02.937Z"
-    },
-    {
-      "id": "tbl-1791622729048-1",
-      "restaurant_id": "rest-1791622728922",
-      "table_number": 1,
-      "capacity": 2,
-      "status": "available",
-      "created_at": "2026-10-10T08:58:49.048Z"
-    },
-    {
-      "id": "tbl-1791622729048-2",
-      "restaurant_id": "rest-1791622728922",
-      "table_number": 2,
-      "capacity": 4,
-      "status": "available",
-      "created_at": "2026-10-10T08:58:49.048Z"
-    },
-    {
-      "id": "tbl-1791622975004-1",
-      "restaurant_id": "rest-1791622974897",
-      "table_number": 1,
-      "capacity": 2,
-      "status": "available",
-      "created_at": "2026-10-10T09:02:55.004Z"
-    },
-    {
-      "id": "tbl-1791622975004-2",
-      "restaurant_id": "rest-1791622974897",
-      "table_number": 2,
-      "capacity": 4,
-      "status": "available",
-      "created_at": "2026-10-10T09:02:55.004Z"
-    },
-    {
-      "id": "tbl-1791623203761-1",
-      "restaurant_id": "rest-1791623203639",
-      "table_number": 1,
-      "capacity": 2,
-      "status": "available",
-      "created_at": "2026-10-10T09:06:43.761Z"
-    },
-    {
-      "id": "tbl-1791623203761-2",
-      "restaurant_id": "rest-1791623203639",
-      "table_number": 2,
-      "capacity": 4,
-      "status": "available",
-      "created_at": "2026-10-10T09:06:43.761Z"
+      "id": "oi-water-1791792522199-0j0",
+      "order_id": "ord-1791792522199",
+      "quantity": 1,
+      "created_at": "2026-10-12T08:08:42.199Z",
+      "menu_item_id": "packaged-water-bottle",
+      "customization": "Added via Customer Water Call",
+      "price_snapshot": 30,
+      "item_name_snapshot": "Packaged Water Bottle (1L)"
     }
   ],
-  "orders": [
+  "restaurants": [
     {
-      "id": "ord-1040",
-      "order_number": 1040,
-      "restaurant_id": "rest-urban-bites-1",
-      "table_id": "tbl-2",
-      "table_number": 2,
-      "customer_name": "Ananya Roy",
-      "customer_phone": "+91 99887 76655",
-      "status": "COMPLETED",
-      "payment_method": "online",
-      "payment_status": "paid",
-      "subtotal": 548,
-      "discount": 50,
-      "tax": 24.9,
-      "total": 522.9,
-      "coupon_id": "cpn-1",
-      "coupon_code": "SAVE50",
-      "items": [
-        {
-          "id": "oi-1",
-          "order_id": "ord-1040",
-          "menu_item_id": "item-1",
-          "item_name_snapshot": "Paneer Pizza",
-          "price_snapshot": 299,
-          "quantity": 1,
-          "created_at": "2026-09-28T13:03:33.245Z"
-        },
-        {
-          "id": "oi-2",
-          "order_id": "ord-1040",
-          "menu_item_id": "item-4",
-          "item_name_snapshot": "Double Gourmet Smash Burger",
-          "price_snapshot": 249,
-          "quantity": 1,
-          "created_at": "2026-09-28T13:03:33.245Z"
-        }
+      "id": "rest-urban-bites-1",
+      "city": "Bengaluru",
+      "logo": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80",
+      "name": "SuKopi",
+      "plan": "pro",
+      "slug": "urban-bites-cafe",
+      "email": "contact@urbanbites.com",
+      "phone": "+91 98765 43210",
+      "state": "Karnataka",
+      "rating": 4.8,
+      "status": "active",
+      "address": "104 Heritage Boulevard, 12th Main, Indiranagar",
+      "pincode": "560038",
+      "owner_id": "usr-owner-1",
+      "tax_rate": 5,
+      "is_banned": false,
+      "wifi_info": "UrbanBites_Guest / Coffee2026",
+      "created_at": "2026-09-28T13:43:33.245Z",
+      "updated_at": "2026-10-05T14:22:23.846Z",
+      "cover_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80",
+      "description": "Artisan sourdough pizzas, gourmet smashed burgers, and handcrafted coffees served in a vibrant cafe ambience.",
+      "closing_time": "11:30 PM",
+      "cuisine_type": "Artisan Coffee & Cafe Bakery",
+      "opening_time": "11:00 AM",
+      "rating_count": 428,
+      "accepting_orders": true,
+      "enabled_payments": {
+        "online": true,
+        "cash_table": true,
+        "cash_counter": true
+      },
+      "water_bottle_price": 20,
+      "service_charge_rate": 5,
+      "supported_languages": [
+        "en",
+        "hi",
+        "mr"
       ],
-      "created_at": "2026-09-28T13:03:33.245Z",
-      "updated_at": "2026-09-29T14:45:45.598Z"
+      "online_payment_enabled": true,
+      "order_validation_enabled": false
     },
     {
-      "id": "ord-1041",
-      "order_number": 1041,
-      "restaurant_id": "rest-urban-bites-1",
-      "table_id": "tbl-4",
-      "table_number": 4,
-      "customer_name": "Rahul Khanna",
-      "customer_phone": "+91 98111 22334",
-      "status": "COMPLETED",
-      "payment_method": "cash_table",
-      "payment_status": "paid",
-      "subtotal": 797,
-      "discount": 0,
-      "tax": 39.85,
-      "total": 836.85,
-      "items": [
-        {
-          "id": "oi-3",
-          "order_id": "ord-1041",
-          "menu_item_id": "item-3",
-          "item_name_snapshot": "Classic Pepperoni Pizza",
-          "price_snapshot": 399,
-          "quantity": 2,
-          "customization": "Extra crispy crust",
-          "created_at": "2026-09-28T13:28:33.245Z"
-        }
+      "id": "rest-1791792003899",
+      "city": "",
+      "logo": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80",
+      "name": "classll@gmail.com",
+      "plan": "growth",
+      "slug": "classll-gmail-com",
+      "email": "classll@gmail.com",
+      "phone": "",
+      "state": "",
+      "rating": 4.8,
+      "status": "active",
+      "address": "",
+      "pincode": "",
+      "owner_id": "usr-owner-1791792003899",
+      "tax_rate": 5,
+      "wifi_info": "GuestWiFi / Resto2026",
+      "created_at": "2026-10-12T08:00:04.015Z",
+      "max_tables": 8,
+      "updated_at": "2026-10-12T08:06:37.994Z",
+      "cover_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80",
+      "description": "",
+      "closing_time": "11:00 PM",
+      "cuisine_type": "Italian Bistro & Cafe",
+      "opening_time": "10:00 AM",
+      "rating_count": 428,
+      "accepting_orders": true,
+      "enabled_payments": {
+        "online": false,
+        "cash_table": true,
+        "cash_counter": true
+      },
+      "water_bottle_price": 30,
+      "service_charge_rate": 5,
+      "supported_languages": [
+        "en",
+        "hi",
+        "mr"
       ],
-      "created_at": "2026-09-28T13:28:33.245Z",
-      "updated_at": "2026-09-29T14:46:04.279Z"
-    },
-    {
-      "id": "ord-1790603030057",
-      "order_number": 1042,
-      "restaurant_id": "rest-urban-bites-1",
-      "table_id": "tbl-1",
-      "table_number": 1,
-      "customer_name": "Test Customer",
-      "customer_phone": "+91 99999 88888",
-      "status": "COMPLETED",
-      "payment_method": "cash_table",
-      "payment_status": "paid",
-      "subtotal": 538,
-      "discount": 50,
-      "tax": 24.4,
-      "total": 512.4,
-      "coupon_id": "cpn-1",
-      "coupon_code": "SAVE50",
-      "items": [
-        {
-          "id": "oi-1790603030057-6hi8hz",
-          "order_id": "ord-1790603030057",
-          "menu_item_id": "item-1",
-          "item_name_snapshot": "Paneer Pizza",
-          "price_snapshot": 269,
-          "quantity": 2,
-          "created_at": "2026-09-28T13:43:50.057Z"
-        }
-      ],
-      "created_at": "2026-09-28T13:43:50.057Z",
-      "updated_at": "2026-09-29T14:46:05.059Z"
-    },
-    {
-      "id": "ord-1790693100365",
-      "order_number": 1043,
-      "restaurant_id": "rest-urban-bites-1",
-      "table_id": "tbl-1",
-      "table_number": 1,
-      "customer_name": "tanvesh punekar",
-      "customer_phone": "9975824025",
-      "status": "COMPLETED",
-      "payment_method": "online",
-      "payment_status": "paid",
-      "subtotal": 339,
-      "discount": 0,
-      "service_charge": 16.95,
-      "tax": 17.8,
-      "total": 373.75,
-      "estimated_prep_time": 17,
-      "items": [
-        {
-          "id": "oi-1790693100365-gsfxjm",
-          "order_id": "ord-1790693100365",
-          "menu_item_id": "item-4",
-          "item_name_snapshot": "Double Gourmet Smash Burger",
-          "price_snapshot": 339,
-          "quantity": 1,
-          "selected_size": "Triple Monster Stack",
-          "customization": "Size: Triple Monster Stack | Spice: Mild Mayo | Size: Triple Monster Stack | Spice: Mild Mayo",
-          "created_at": "2026-09-29T14:45:00.365Z"
-        }
-      ],
-      "created_at": "2026-09-29T14:45:00.365Z",
-      "updated_at": "2026-09-29T14:46:03.197Z"
-    },
-    {
-      "id": "ord-1791622186968",
-      "order_number": 1044,
-      "restaurant_id": "rest-1791208622814",
-      "table_id": "tbl-1791208622937-1",
-      "table_number": 1,
-      "status": "COMPLETED",
-      "payment_method": "cash_counter",
-      "payment_status": "pending",
-      "subtotal": 1494,
-      "discount": 0,
-      "service_charge": 74.7,
-      "tax": 78.44,
-      "total": 1647.14,
-      "estimated_prep_time": 20,
-      "items": [
-        {
-          "id": "oi-1791622186968-hetesg",
-          "order_id": "ord-1791622186968",
-          "menu_item_id": "item-1791208622937",
-          "item_name_snapshot": "coso Signature Dish",
-          "price_snapshot": 249,
-          "quantity": 6,
-          "created_at": "2026-10-10T08:49:46.968Z"
-        }
-      ],
-      "created_at": "2026-10-10T08:49:46.968Z",
-      "updated_at": "2026-10-10T08:50:17.764Z"
-    },
-    {
-      "id": "ord-1791623403958",
-      "order_number": 1045,
-      "restaurant_id": "rest-1791208622814",
-      "table_id": "tbl-1791208622937-1",
-      "table_number": 1,
-      "status": "NEW",
-      "payment_method": "cash_counter",
-      "payment_status": "pending",
-      "subtotal": 249,
-      "discount": 0,
-      "service_charge": 12.45,
-      "tax": 13.07,
-      "total": 274.52,
-      "estimated_prep_time": 20,
-      "items": [
-        {
-          "id": "oi-1791623403958-9ifdvt",
-          "order_id": "ord-1791623403958",
-          "menu_item_id": "item-1791208622937",
-          "item_name_snapshot": "coso Signature Dish",
-          "price_snapshot": 249,
-          "quantity": 1,
-          "created_at": "2026-10-10T09:10:03.958Z"
-        }
-      ],
-      "created_at": "2026-10-10T09:10:03.958Z",
-      "updated_at": "2026-10-10T09:10:03.958Z"
-    }
-  ],
-  "order_items": [],
-  "coupons": [
-    {
-      "id": "cpn-1",
-      "restaurant_id": "rest-urban-bites-1",
-      "code": "SAVE50",
-      "discount_type": "fixed",
-      "discount_value": 50,
-      "min_order_amount": 300,
-      "start_date": "2026-09-18",
-      "end_date": "2026-11-27",
-      "usage_limit": 1000,
-      "used_count": 25,
-      "per_customer_limit": 1,
-      "is_active": true,
-      "created_at": "2026-09-28T13:43:33.245Z"
-    }
-  ],
-  "customers": [
-    {
-      "id": "cst-1",
-      "restaurant_id": "rest-urban-bites-1",
-      "name": "Ananya Roy",
-      "phone": "+91 99887 76655",
-      "email": "ananya@example.com",
-      "orders_count": 3,
-      "total_spent": 1640,
-      "last_order_at": "2026-09-28T13:03:33.245Z",
-      "loyalty_points": 160,
-      "created_at": "2026-09-13T13:43:33.245Z"
-    },
-    {
-      "id": "cst-2",
-      "restaurant_id": "rest-urban-bites-1",
-      "name": "Rahul Khanna",
-      "phone": "+91 98111 22334",
-      "orders_count": 1,
-      "total_spent": 836.85,
-      "last_order_at": "2026-09-28T13:28:33.245Z",
-      "loyalty_points": 80,
-      "created_at": "2026-09-28T13:43:33.245Z"
-    },
-    {
-      "id": "cst-1790603030058",
-      "restaurant_id": "rest-urban-bites-1",
-      "name": "Test Customer",
-      "phone": "+91 99999 88888",
-      "orders_count": 1,
-      "total_spent": 512.4,
-      "last_order_at": "2026-09-28T13:43:50.058Z",
-      "loyalty_points": 51,
-      "created_at": "2026-09-28T13:43:50.058Z"
-    },
-    {
-      "id": "cst-1790693100365",
-      "restaurant_id": "rest-urban-bites-1",
-      "name": "tanvesh punekar",
-      "phone": "9975824025",
-      "orders_count": 1,
-      "total_spent": 373.75,
-      "last_order_at": "2026-09-29T14:45:00.365Z",
-      "loyalty_points": 37,
-      "created_at": "2026-09-29T14:45:00.365Z"
+      "online_payment_enabled": false,
+      "order_validation_enabled": false
     }
   ],
   "activity_logs": [
     {
+      "id": "act-1791792608755",
+      "action": "SERVICE_REQUEST",
+      "details": "Table #6 requested: bill (Customer finished dining at Table 6. Requesting bill settlement.)",
+      "timestamp": "2026-10-12T08:10:08.755Z",
+      "user_email": "Table 6",
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "act-1791792589364",
+      "action": "ORDER_COMPLETED_CASH",
+      "details": "Order #1047 (Table 6) marked COMPLETED with CASH payment",
+      "timestamp": "2026-10-12T08:09:49.364Z",
+      "user_email": "2@gmail.com",
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "act-1791792522199",
+      "action": "SERVICE_REQUEST",
+      "details": "Table #6 requested: water (💧 1x Water Bottle (₹30) automatically added to Table #6 bill)",
+      "timestamp": "2026-10-12T08:08:42.199Z",
+      "user_email": "Table 6",
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "act-1791791953363",
+      "action": "RESTAURANT_DELETED",
+      "details": "Restaurant \"test2\" (test2) permanently deleted by platform admin",
+      "timestamp": "2026-10-12T07:59:13.363Z",
+      "user_email": "tanveshpunekar296@gmail.com",
+      "restaurant_id": "rest-1791623203639"
+    },
+    {
+      "id": "act-1791791946987",
+      "action": "RESTAURANT_DELETED",
+      "details": "Restaurant \"coso\" (coso) permanently deleted by platform admin",
+      "timestamp": "2026-10-12T07:59:06.987Z",
+      "user_email": "tanveshpunekar296@gmail.com",
+      "restaurant_id": "rest-1791208622814"
+    },
+    {
+      "id": "act-1791791937425",
+      "action": "RESTAURANT_DELETED",
+      "details": "Restaurant \"2test\" (2test) permanently deleted by platform admin",
+      "timestamp": "2026-10-12T07:58:57.425Z",
+      "user_email": "tanveshpunekar296@gmail.com",
+      "restaurant_id": "rest-1791622974897"
+    },
+    {
+      "id": "act-1791791934933",
+      "action": "RESTAURANT_DELETED",
+      "details": "Restaurant \"1test\" (1test) permanently deleted by platform admin",
+      "timestamp": "2026-10-12T07:58:54.933Z",
+      "user_email": "tanveshpunekar296@gmail.com",
+      "restaurant_id": "rest-1791622728922"
+    },
+    {
       "id": "act-1791622876264",
-      "restaurant_id": "rest-urban-bites-1",
-      "user_email": "Table 1",
       "action": "SERVICE_REQUEST",
       "details": "Table #1 requested: bill (Customer requested final bill settlement for the table.)",
-      "timestamp": "2026-10-10T09:01:16.264Z"
+      "timestamp": "2026-10-10T09:01:16.264Z",
+      "user_email": "Table 1",
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "act-1791622873127",
-      "restaurant_id": "rest-urban-bites-1",
-      "user_email": "Table 1",
       "action": "SERVICE_REQUEST",
       "details": "Table #1 requested: bill ()",
-      "timestamp": "2026-10-10T09:01:13.127Z"
+      "timestamp": "2026-10-10T09:01:13.127Z",
+      "user_email": "Table 1",
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "act-1791622369404",
-      "restaurant_id": "rest-urban-bites-1",
-      "user_email": "Table 1",
       "action": "SERVICE_REQUEST",
       "details": "Table #1 requested: water (Customer requested fresh drinking water for the table.)",
-      "timestamp": "2026-10-10T08:52:49.404Z"
+      "timestamp": "2026-10-10T08:52:49.404Z",
+      "user_email": "Table 1",
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "act-1791622368088",
-      "restaurant_id": "rest-urban-bites-1",
-      "user_email": "Table 1",
       "action": "SERVICE_REQUEST",
       "details": "Table #1 requested: bill (Customer requested final bill settlement for the table.)",
-      "timestamp": "2026-10-10T08:52:48.088Z"
+      "timestamp": "2026-10-10T08:52:48.088Z",
+      "user_email": "Table 1",
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "act-1791622263759",
-      "restaurant_id": "rest-1791208622814",
-      "user_email": "Table 2",
       "action": "SERVICE_REQUEST",
       "details": "Table #2 requested: bill (Customer finished dining at Table 2. Requesting bill settlement.)",
-      "timestamp": "2026-10-10T08:51:03.759Z"
+      "timestamp": "2026-10-10T08:51:03.759Z",
+      "user_email": "Table 2",
+      "restaurant_id": "rest-1791208622814"
     },
     {
       "id": "act-1791622240526",
-      "restaurant_id": "rest-1791208622814",
-      "user_email": "Table 1",
       "action": "SERVICE_REQUEST",
       "details": "Table #1 requested: bill (Customer finished dining at Table 1. Requesting bill settlement.)",
-      "timestamp": "2026-10-10T08:50:40.526Z"
+      "timestamp": "2026-10-10T08:50:40.526Z",
+      "user_email": "Table 1",
+      "restaurant_id": "rest-1791208622814"
     },
     {
       "id": "act-1791208894978",
-      "restaurant_id": "rest-urban-bites-1",
-      "user_email": "Table 1",
       "action": "SERVICE_REQUEST",
       "details": "Table #1 requested: bill ()",
-      "timestamp": "2026-10-05T14:01:34.978Z"
+      "timestamp": "2026-10-05T14:01:34.978Z",
+      "user_email": "Table 1",
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "act-1791208880346",
-      "restaurant_id": "rest-urban-bites-1",
-      "user_email": "Table 1",
       "action": "SERVICE_REQUEST",
       "details": "Table #1 requested: bill (Customer requested final bill settlement for the table.)",
-      "timestamp": "2026-10-05T14:01:20.346Z"
+      "timestamp": "2026-10-05T14:01:20.346Z",
+      "user_email": "Table 1",
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "act-1",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "PLATFORM_INIT",
       "details": "Multi-restaurant QR ordering platform initialized",
-      "timestamp": "2026-09-28T13:43:33.245Z"
+      "timestamp": "2026-09-28T13:43:33.245Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-2",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_CREATED",
       "details": "Created restaurant Urban Bites Cafe (Pro Plan)",
-      "timestamp": "2026-09-28T13:43:33.245Z"
+      "timestamp": "2026-09-28T13:43:33.245Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-1791208622937",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_CREATED",
       "details": "Created restaurant coso (coso) for coso@gmail.com",
-      "timestamp": "2026-10-05T13:57:02.937Z"
+      "timestamp": "2026-10-05T13:57:02.937Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-1791210136372",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_SERVICE_UPDATED",
       "details": "Updated Urban Bites Cafe: Status=suspended, Expires=Never",
-      "timestamp": "2026-10-05T14:22:16.372Z"
+      "timestamp": "2026-10-05T14:22:16.372Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-1791210143846",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_SERVICE_UPDATED",
       "details": "Updated Urban Bites Cafe: Status=active, Expires=Never",
-      "timestamp": "2026-10-05T14:22:23.846Z"
+      "timestamp": "2026-10-05T14:22:23.846Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-1791622431575",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_SERVICE_UPDATED",
       "details": "Updated coso: Status=suspended, Expires=Never",
-      "timestamp": "2026-10-10T08:53:51.575Z"
+      "timestamp": "2026-10-10T08:53:51.575Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-1791622457943",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_SERVICE_UPDATED",
       "details": "Updated coso: Status=active, Expires=Never",
-      "timestamp": "2026-10-10T08:54:17.943Z"
+      "timestamp": "2026-10-10T08:54:17.943Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-1791622729048",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_CREATED",
       "details": "Created restaurant 1test (1test) for 1test@gmail.com",
-      "timestamp": "2026-10-10T08:58:49.048Z"
+      "timestamp": "2026-10-10T08:58:49.048Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-1791622975004",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_CREATED",
       "details": "Created restaurant 2test (2test) for 2test@gmail.com",
-      "timestamp": "2026-10-10T09:02:55.004Z"
+      "timestamp": "2026-10-10T09:02:55.004Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     },
     {
       "id": "act-1791623203762",
-      "user_email": "tanveshpunekar296@gmail.com",
       "action": "RESTAURANT_CREATED",
       "details": "Created restaurant test2 (test2) for test2@gmail.com",
-      "timestamp": "2026-10-10T09:06:43.762Z"
+      "timestamp": "2026-10-10T09:06:43.762Z",
+      "user_email": "tanveshpunekar296@gmail.com"
+    },
+    {
+      "id": "act-1791791941289",
+      "action": "RESTAURANT_SERVICE_UPDATED",
+      "details": "Updated test2: Status=suspended, Expires=Never",
+      "timestamp": "2026-10-12T07:59:01.289Z",
+      "user_email": "tanveshpunekar296@gmail.com"
+    },
+    {
+      "id": "act-1791792004015",
+      "action": "RESTAURANT_CREATED",
+      "details": "Created restaurant classll@gmail.com (classll-gmail-com) with 8 tables for classll@gmail.com",
+      "timestamp": "2026-10-12T08:00:04.015Z",
+      "user_email": "tanveshpunekar296@gmail.com"
     }
   ],
-  "next_order_number": 1046,
+  "subscriptions": [
+    {
+      "id": "sub-1",
+      "plan": "pro",
+      "notes": "Annual Pro Subscription confirmed by Platform Admin",
+      "price": 3499,
+      "status": "active",
+      "start_date": "2026-08-29",
+      "expiry_date": "2027-08-29",
+      "restaurant_id": "rest-urban-bites-1",
+      "payment_method": "UPI / Razorpay",
+      "payment_status": "paid",
+      "payment_reference": "PAY_PRO_99412"
+    },
+    {
+      "id": "sub-1791792004015",
+      "plan": "growth",
+      "notes": "Initial subscription generated during creation",
+      "price": 1999,
+      "status": "active",
+      "start_date": "2026-10-12",
+      "expiry_date": "2027-10-12",
+      "restaurant_id": "rest-1791792003899",
+      "payment_method": "Admin Provisioned",
+      "payment_status": "paid"
+    }
+  ],
   "service_requests": [
     {
-      "id": "req-1791622876264-91yd",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 1,
+      "id": "req-1791792608755-c9kc",
+      "note": "Customer finished dining at Table 6. Requesting bill settlement.",
+      "status": "pending",
+      "created_at": "2026-10-12T08:10:08.755Z",
       "request_type": "bill",
+      "table_number": 6,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "req-1791792522198-oeik",
+      "note": "💧 1x Water Bottle (₹30) automatically added to Table #6 bill",
+      "status": "resolved",
+      "created_at": "2026-10-12T08:08:42.198Z",
+      "attended_at": "2026-10-12T08:08:54.259Z",
+      "attended_by": "1",
+      "resolved_at": "2026-10-12T08:08:55.906Z",
+      "request_type": "water",
+      "table_number": 6,
+      "restaurant_id": "rest-1791792003899"
+    },
+    {
+      "id": "req-1791622876264-91yd",
       "note": "Customer requested final bill settlement for the table.",
       "status": "pending",
-      "created_at": "2026-10-10T09:01:16.264Z"
+      "created_at": "2026-10-10T09:01:16.264Z",
+      "request_type": "bill",
+      "table_number": 1,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "req-1791622873127-8893",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 1,
-      "request_type": "bill",
       "note": "",
       "status": "pending",
-      "created_at": "2026-10-10T09:01:13.127Z"
+      "created_at": "2026-10-10T09:01:13.127Z",
+      "request_type": "bill",
+      "table_number": 1,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "req-1791622369404-vmgy",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 1,
-      "request_type": "water",
       "note": "Customer requested fresh drinking water for the table.",
       "status": "pending",
-      "created_at": "2026-10-10T08:52:49.404Z"
+      "created_at": "2026-10-10T08:52:49.404Z",
+      "request_type": "water",
+      "table_number": 1,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "req-1791622368088-9obh",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 1,
-      "request_type": "bill",
       "note": "Customer requested final bill settlement for the table.",
       "status": "pending",
-      "created_at": "2026-10-10T08:52:48.088Z"
-    },
-    {
-      "id": "req-1791622263759-9nmp",
-      "restaurant_id": "rest-1791208622814",
-      "table_number": 2,
+      "created_at": "2026-10-10T08:52:48.088Z",
       "request_type": "bill",
-      "note": "Customer finished dining at Table 2. Requesting bill settlement.",
-      "status": "resolved",
-      "created_at": "2026-10-10T08:51:03.759Z",
-      "resolved_at": "2026-10-10T08:51:15.487Z"
-    },
-    {
-      "id": "req-1791622240526-6zmb",
-      "restaurant_id": "rest-1791208622814",
       "table_number": 1,
-      "request_type": "bill",
-      "note": "Customer finished dining at Table 1. Requesting bill settlement.",
-      "status": "resolved",
-      "created_at": "2026-10-10T08:50:40.526Z",
-      "resolved_at": "2026-10-10T08:50:55.952Z"
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "req-1791208894978-68vm",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 1,
-      "request_type": "bill",
       "note": "",
       "status": "pending",
-      "created_at": "2026-10-05T14:01:34.978Z"
+      "created_at": "2026-10-05T14:01:34.978Z",
+      "request_type": "bill",
+      "table_number": 1,
+      "restaurant_id": "rest-urban-bites-1"
     },
     {
       "id": "req-1791208880346-qyps",
-      "restaurant_id": "rest-urban-bites-1",
-      "table_number": 1,
-      "request_type": "bill",
       "note": "Customer requested final bill settlement for the table.",
       "status": "pending",
-      "created_at": "2026-10-05T14:01:20.346Z"
+      "created_at": "2026-10-05T14:01:20.346Z",
+      "request_type": "bill",
+      "table_number": 1,
+      "restaurant_id": "rest-urban-bites-1"
     }
-  ]
+  ],
+  "next_order_number": 1048
 }
