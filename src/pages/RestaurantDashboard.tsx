@@ -1520,7 +1520,7 @@ export const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({
                   className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
                 >
                   <Printer className="w-4 h-4 text-orange-400" />
-                  <span>DOWNLOAD ALL QR</span>
+                  <span>PRINT & DOWNLOAD ALL QR</span>
                 </button>
                 <button
                   onClick={() => setShowTableModal(true)}
@@ -2715,7 +2715,7 @@ export const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({
                           className="flex-1 py-2 px-3 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <QrCode className="w-3.5 h-3.5 text-slate-500" />
-                          <span>View / Print QR</span>
+                          <span>QR & Standee (T{table.table_number})</span>
                         </button>
 
                         <button

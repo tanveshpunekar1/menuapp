@@ -7,7 +7,8 @@ import jwt from 'jsonwebtoken';
 import { db } from './db.ts';
 import type { 
   User, Order, OrderItem, Restaurant, MenuItem, 
-  Category, RestaurantTable, Coupon, Customer, ActivityLog, Subscription, TableServiceRequest 
+  Category, RestaurantTable, Coupon, Customer, ActivityLog, Subscription, TableServiceRequest,
+  MenuThemeId
 } from '../types/index.ts';
 
 export const apiRouter = express.Router();
@@ -1359,23 +1360,19 @@ apiRouter.put('/restaurant/profile', authenticate, requireRole('platform_admin',
       if (upi_payee_name !== undefined) rest.upi_payee_name = upi_payee_name.trim();
       if (pay_counter_only !== undefined) rest.pay_counter_only = Boolean(pay_counter_only);
       if (req.body.active_theme !== undefined) {
-        const requestedTheme = req.body.active_theme;
-        const allowed = Array.isArray(rest.allowed_themes) && rest.allowed_themes.length > 0
-          ? rest.allowed_themes
-          : (rest.plan === 'pro' || rest.plan === 'custom')
-            ? ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand']
-            : rest.plan === 'growth'
-              ? ['classic', 'hot_ready', 'premium_cafe', 'modern_app']
-              : ['classic'];
-        if (req.user?.role === 'platform_admin' || allowed.includes(requestedTheme)) {
+        const requestedTheme = req.body.active_theme as MenuThemeId;
+        const validThemes: MenuThemeId[] = ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand'];
+        if (validThemes.includes(requestedTheme)) {
           rest.active_theme = requestedTheme;
+          if (!Array.isArray(rest.allowed_themes)) {
+            rest.allowed_themes = [...validThemes];
+          } else if (!rest.allowed_themes.includes(requestedTheme)) {
+            rest.allowed_themes.push(requestedTheme);
+          }
         }
       }
       if (req.body.theme_config && typeof req.body.theme_config === 'object') {
-        const canCustomize = req.user?.role === 'platform_admin' || (rest.can_customize_theme ?? (rest.plan !== 'starter'));
-        if (canCustomize) {
-          rest.theme_config = { ...(rest.theme_config || {}), ...req.body.theme_config };
-        }
+        rest.theme_config = { ...(rest.theme_config || {}), ...req.body.theme_config };
       }
       if (req.user?.role === 'platform_admin') {
         if (Array.isArray(req.body.allowed_themes)) {
@@ -2502,6 +2499,10 @@ apiRouter.get('/public/menu/:slug', async (req: Request, res: Response) => {
       pay_counter_only: rest.pay_counter_only ?? false,
       upi_id: rest.upi_id || '',
       upi_payee_name: rest.upi_payee_name || rest.name,
+      active_theme: rest.active_theme || 'classic',
+      allowed_themes: rest.allowed_themes || ['classic'],
+      can_customize_theme: rest.can_customize_theme ?? true,
+      theme_config: rest.theme_config || {},
       service_expires_at: rest.service_expires_at
     },
     categories,
@@ -2587,7 +2588,12 @@ apiRouter.get('/public/menu/:slug/table/:tableNum', async (req: Request, res: Re
       water_bottle_price: rest.water_bottle_price ?? 20,
       pay_counter_only: rest.pay_counter_only ?? false,
       upi_id: rest.upi_id || '',
-      upi_payee_name: rest.upi_payee_name || rest.name
+      upi_payee_name: rest.upi_payee_name || rest.name,
+      active_theme: rest.active_theme || 'classic',
+      allowed_themes: rest.allowed_themes || ['classic'],
+      can_customize_theme: rest.can_customize_theme ?? true,
+      theme_config: rest.theme_config || {},
+      service_expires_at: rest.service_expires_at
     },
     table: {
       id: table.id,

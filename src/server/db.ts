@@ -867,15 +867,14 @@ class Database {
       if (!r.supported_languages) r.supported_languages = ['en', 'hi', 'mr'];
       if (!r.active_theme) r.active_theme = 'classic';
       if (!Array.isArray(r.allowed_themes) || r.allowed_themes.length === 0) {
-        r.allowed_themes =
-          r.plan === 'pro' || r.plan === 'custom'
-            ? ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand']
-            : r.plan === 'growth'
-              ? ['classic', 'hot_ready', 'premium_cafe', 'modern_app']
-              : ['classic'];
+        r.allowed_themes = ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand'];
+      } else {
+        if (r.active_theme && !r.allowed_themes.includes(r.active_theme)) {
+          r.allowed_themes.push(r.active_theme);
+        }
       }
       if (r.can_customize_theme === undefined) {
-        r.can_customize_theme = r.plan !== 'starter';
+        r.can_customize_theme = true;
       }
       if (!r.theme_config || typeof r.theme_config !== 'object') {
         r.theme_config = {};

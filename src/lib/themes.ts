@@ -279,32 +279,33 @@ export const ALL_THEME_IDS: MenuThemeId[] = [
 
 export function getDefaultAllowedThemesForPlan(plan?: SubscriptionPlan): MenuThemeId[] {
   switch (plan) {
+    case 'starter':
+    case 'growth':
     case 'pro':
     case 'custom':
-      return ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand'];
-    case 'growth':
-      return ['classic', 'hot_ready', 'premium_cafe', 'modern_app'];
-    case 'starter':
     default:
-      return ['classic'];
+      return ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand'];
   }
 }
 
 export function getAllowedThemesForRestaurant(restaurant?: Partial<Restaurant> | null): MenuThemeId[] {
-  if (!restaurant) return ['classic'];
+  if (!restaurant) return ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand'];
   if (Array.isArray(restaurant.allowed_themes) && restaurant.allowed_themes.length > 0) {
     const valid = restaurant.allowed_themes.filter((t): t is MenuThemeId =>
       ALL_THEME_IDS.includes(t as MenuThemeId)
     );
     if (valid.length > 0) {
+      if (restaurant.active_theme && ALL_THEME_IDS.includes(restaurant.active_theme) && !valid.includes(restaurant.active_theme)) {
+        valid.push(restaurant.active_theme);
+      }
       return valid;
     }
   }
-  return getDefaultAllowedThemesForPlan(restaurant.plan);
+  return ['classic', 'hot_ready', 'premium_cafe', 'modern_app', 'custom_brand'];
 }
 
 export function canRestaurantCustomizeTheme(restaurant?: Partial<Restaurant> | null): boolean {
-  if (!restaurant) return false;
+  if (!restaurant) return true;
   if (typeof restaurant.can_customize_theme === 'boolean') {
     return restaurant.can_customize_theme;
   }
@@ -318,11 +319,10 @@ export function getEffectiveActiveTheme(
   if (previewOverride && ALL_THEME_IDS.includes(previewOverride as MenuThemeId)) {
     return previewOverride as MenuThemeId;
   }
-  const allowed = getAllowedThemesForRestaurant(restaurant);
-  const requested = restaurant?.active_theme || allowed[0] || 'classic';
-  if (allowed.includes(requested)) {
-    return requested;
+  if (restaurant?.active_theme && ALL_THEME_IDS.includes(restaurant.active_theme as MenuThemeId)) {
+    return restaurant.active_theme as MenuThemeId;
   }
+  const allowed = getAllowedThemesForRestaurant(restaurant);
   return allowed[0] || 'classic';
 }
 
