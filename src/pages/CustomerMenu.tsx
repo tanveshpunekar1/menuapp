@@ -1205,13 +1205,20 @@ export const CustomerMenu: React.FC<CustomerMenuProps> = ({
 
   const effectiveTheme: MenuThemeId = getEffectiveActiveTheme(restaurant, previewThemeOverride);
 
-  // If opened from Theme Studio with ?preview_theme=..., read any live draft config from localStorage
+  // If opened from Theme Studio with ?preview_theme=..., read any live draft config from localStorage so unsaved customizations show immediately in the new window
   let livePreviewDraftConfig: any = null;
-  if (previewThemeOverride && restaurant?.id) {
+  if (previewThemeOverride && restaurant) {
     try {
-      const rawDraft = localStorage.getItem(`dineflow_live_theme_draft_${restaurant.id}_${effectiveTheme}`);
+      const slugKey = `qr_theme_live_draft_${restaurant.slug || slug}`;
+      const restKey = `qr_theme_live_draft_${restaurant.id}`;
+      const rawDraft =
+        localStorage.getItem(slugKey) ||
+        localStorage.getItem(restKey) ||
+        localStorage.getItem(`dineflow_live_theme_draft_${restaurant.id}_${effectiveTheme}`);
+
       if (rawDraft) {
-        livePreviewDraftConfig = JSON.parse(rawDraft);
+        const parsed = JSON.parse(rawDraft);
+        livePreviewDraftConfig = parsed.config || parsed;
       }
     } catch {
       // ignore storage errors
@@ -3231,8 +3238,8 @@ export const CustomerMenu: React.FC<CustomerMenuProps> = ({
                   onClick={() => setAssistanceType('waiter')}
                   className={`p-3 rounded-2xl border text-xs font-bold transition text-left cursor-pointer ${
                     assistanceType === 'waiter' 
-                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black' 
-                      : 'border-slate-200 bg-slate-50 text-slate-700'
+                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' 
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   🛎️ Call Waiter
@@ -3242,8 +3249,8 @@ export const CustomerMenu: React.FC<CustomerMenuProps> = ({
                   onClick={() => setAssistanceType('water')}
                   className={`p-3 rounded-2xl border text-xs font-bold transition text-left cursor-pointer ${
                     assistanceType === 'water' 
-                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black' 
-                      : 'border-slate-200 bg-slate-50 text-slate-700'
+                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' 
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <div>💧 Water Bottle</div>
@@ -3258,19 +3265,63 @@ export const CustomerMenu: React.FC<CustomerMenuProps> = ({
                   onClick={() => setAssistanceType('cutlery')}
                   className={`p-3 rounded-2xl border text-xs font-bold transition text-left cursor-pointer ${
                     assistanceType === 'cutlery' 
-                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black' 
-                      : 'border-slate-200 bg-slate-50 text-slate-700'
+                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' 
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  🍴 Extra Cutlery
+                  🍴 Extra Cutlery & Plates
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAssistanceType('cleaning')}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition text-left cursor-pointer ${
+                    assistanceType === 'cleaning' 
+                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' 
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  🧽 Clean / Wipe Table
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAssistanceType('hot_water')}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition text-left cursor-pointer ${
+                    assistanceType === 'hot_water' 
+                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' 
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  ☕ Warm / Hot Water
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAssistanceType('napkins')}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition text-left cursor-pointer ${
+                    assistanceType === 'napkins' 
+                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' 
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  🧻 Tissue & Napkins
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAssistanceType('manager')}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition text-left cursor-pointer ${
+                    assistanceType === 'manager' 
+                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' 
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  👔 Call Manager
                 </button>
                 <button
                   type="button"
                   onClick={() => setAssistanceType('bill')}
                   className={`p-3 rounded-2xl border text-xs font-bold transition text-left cursor-pointer ${
                     assistanceType === 'bill' 
-                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black' 
-                      : 'border-slate-200 bg-slate-50 text-slate-700'
+                      ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' 
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   🧾 Print Final Bill

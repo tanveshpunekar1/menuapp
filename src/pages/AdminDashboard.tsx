@@ -47,6 +47,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createStep, setCreateStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const [isCreatingCafe, setIsCreatingCafe] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [createdResult, setCreatedResult] = useState<{ restaurant: Restaurant; owner: any } | null>(null);
 
   // Super Admin Change Password State
@@ -368,11 +370,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   const handleCreateNewUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCreatingUser) return;
     if (!newUserForm.name || !newUserForm.email || !newUserForm.password) {
       showToast('Name, email, and password are required', 'error');
       return;
     }
     try {
+      setIsCreatingUser(true);
       await api.createAdminUser(newUserForm);
       showToast(`Created account for ${newUserForm.email}`, 'success');
       setShowAddUserModal(false);
@@ -380,6 +384,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       loadData();
     } catch (err: any) {
       showToast(err.message || 'Failed to create user', 'error');
+    } finally {
+      setIsCreatingUser(false);
     }
   };
 
@@ -596,11 +602,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   };
 
   const handleCreateRestaurant = async () => {
+    if (isCreatingCafe) return;
     if (formData.owner_password !== formData.confirm_password) {
       showToast('Passwords do not match', 'error');
       return;
     }
     try {
+      setIsCreatingCafe(true);
       const res = await api.createRestaurant(formData);
       setCreatedResult(res);
       setCreateStep(5);
@@ -608,6 +616,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       loadData();
     } catch (err: any) {
       showToast(err.message || 'Failed to create restaurant', 'error');
+    } finally {
+      setIsCreatingCafe(false);
     }
   };
 
@@ -2410,9 +2420,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                   <button
                     type="button"
                     onClick={handleCreateRestaurant}
-                    className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer"
+                    disabled={isCreatingCafe}
+                    className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer disabled:opacity-50"
                   >
-                    CREATE RESTAURANT
+                    {isCreatingCafe ? 'CREATING RESTAURANT...' : 'CREATE RESTAURANT'}
                   </button>
                 )}
               </div>
@@ -2927,9 +2938,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#ff4d2e] text-white text-xs font-black cursor-pointer"
+                  disabled={isCreatingUser}
+                  className="px-5 py-2 rounded-xl bg-[#ff4d2e] text-white text-xs font-black cursor-pointer disabled:opacity-50"
                 >
-                  Create Account
+                  {isCreatingUser ? 'Creating Account...' : 'Create Account'}
                 </button>
               </div>
             </form>

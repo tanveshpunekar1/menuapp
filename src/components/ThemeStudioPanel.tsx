@@ -90,20 +90,19 @@ export const ThemeStudioPanel: React.FC<ThemeStudioPanelProps> = ({
 
   // Sync live draft customization to localStorage so "Open Live QR Menu Preview" in a new window reflects unsaved edits immediately
   useEffect(() => {
-    if (!restaurant?.slug) return;
+    if (!restaurant) return;
     try {
-      localStorage.setItem(
-        `qr_theme_live_draft_${restaurant.slug}`,
-        JSON.stringify({
-          themeId: selectedTheme,
-          config,
-          updatedAt: Date.now(),
-        })
-      );
+      const payload = JSON.stringify({
+        themeId: selectedTheme,
+        config,
+        updatedAt: Date.now(),
+      });
+      if (restaurant.slug) localStorage.setItem(`qr_theme_live_draft_${restaurant.slug}`, payload);
+      if (restaurant.id) localStorage.setItem(`qr_theme_live_draft_${restaurant.id}`, payload);
     } catch {
       // ignore storage quota errors
     }
-  }, [restaurant?.slug, selectedTheme, config]);
+  }, [restaurant?.slug, restaurant?.id, selectedTheme, config]);
 
   const handleSelectThemeCard = (themeId: MenuThemeId) => {
     const isUnlocked = isAdminOverride || allowedThemes.includes(themeId);

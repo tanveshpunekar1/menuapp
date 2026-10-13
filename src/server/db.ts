@@ -1122,7 +1122,7 @@ class Database {
     this.scheduleCloudSync();
   }
 
-  public async commitAndSync(): Promise<void> {
+  public commitAndSync(): void {
     this.hasLocalMutations = true;
     this.saveData(this.data);
     if (!this.supabase || !this.isCloudConfigured) return;
@@ -1130,20 +1130,23 @@ class Database {
       clearTimeout(this.syncTimeout);
       this.syncTimeout = null;
     }
-    try {
-      await this.supabase.from('restoqr_cloud_store').upsert({
-        key: 'restoqr_master_db',
-        data: this.data,
-        updated_at: new Date().toISOString()
-      });
-    } catch {
-      // Fallback to relational sync if cloud_store not created
-    }
-    try {
-      await this.syncToSupabase();
-    } catch {
-      // Non-fatal
-    }
+    // Perform remote cloud sync in background so client gets sub-50ms instant response
+    Promise.resolve().then(async () => {
+      try {
+        await this.supabase.from('restoqr_cloud_store').upsert({
+          key: 'restoqr_master_db',
+          data: this.data,
+          updated_at: new Date().toISOString()
+        });
+      } catch {
+        // Fallback to relational sync
+      }
+      try {
+        await this.syncToSupabase();
+      } catch {
+        // Non-fatal background sync
+      }
+    }).catch(() => {});
   }
 
   public async ensureCloudLoaded(): Promise<void> {
@@ -1181,7 +1184,7 @@ class Database {
     await this.ensureCloudLoaded();
     this.hasLocalMutations = true;
     fn(this.data);
-    await this.commitAndSync();
+    this.commitAndSync();
   }
 
   public resetToDefaults() {
@@ -1214,9 +1217,7 @@ class Database {
     if (!this.supabase || !this.isCloudConfigured) return;
     if (this.syncTimeout) clearTimeout(this.syncTimeout);
     this.syncTimeout = setTimeout(() => {
-      this.commitAndSync().catch(err => {
-        console.warn('[Database] Background cloud sync notice:', err.message);
-      });
+      this.commitAndSync();
     }, 300);
   }
 
